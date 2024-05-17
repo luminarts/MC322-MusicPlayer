@@ -27,6 +27,12 @@ public class Usuario {
         this.foto = f;
     }
 
+    public Usuario(String n, String e, String f) {
+        this.nome = n;
+        this.email = e;
+        this.foto = f;
+    }
+
     // @Override
     public String ToString() {
         String aux = "";
