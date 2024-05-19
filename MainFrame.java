@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.FlowLayout;
 
 public class MainFrame extends JFrame { 
     JFrame mainFrame; 
@@ -7,10 +8,12 @@ public class MainFrame extends JFrame {
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     this.setSize(1080, 720);
     
+    // Componee
+
+    // Componentes do reprodutor
     JButton volumeButton = new JButton("Press");
         
-    this.getContentPane().add(volumeButton);
-    this.setVisible(true);
+    this.add(volumeButton);
     }
 }  
 
