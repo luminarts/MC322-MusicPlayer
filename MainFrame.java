@@ -1,12 +1,15 @@
-// import javax.sound.sampled.*;
+import javax.sound.sampled.*;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.util.ArrayList;
+import java.io.IOException;
+// import java.util.ArrayList;
 
 
 
@@ -15,6 +18,10 @@ public class MainFrame extends JFrame{
     private static MainFrame mainFrameInstance = null;
     private JLabel fileLabel;
     private JFileChooser fileChooser;
+    private Clip audioClip;
+    private Timer timer;
+    private boolean sliderisChanging = false;
+    
 
     
 
@@ -24,15 +31,15 @@ public class MainFrame extends JFrame{
 
         
         
-        // Left Panel components
+        // Componentes do painel da esquerda
 
         JPanel leftPanel = new JPanel(new GridBagLayout());
         GridBagConstraints leftPanelGbc = new GridBagConstraints();
         leftPanel.setBackground(Color.LIGHT_GRAY); 
 
-        DefaultListModel<String> auxSongList = new DefaultListModel<>();  
+        DefaultListModel<Musica> auxSongList = new DefaultListModel<>();  
         
-        JList<String> songList = new JList<>(auxSongList);
+        JList<Musica> songList = new JList<>(auxSongList);
         
         JButton backToLoginButton = new JButton("Voltar pra tela de login");
         backToLoginButton.addActionListener(new ActionListener() {
@@ -49,8 +56,8 @@ public class MainFrame extends JFrame{
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = fileChooser.getSelectedFile();
                     fileLabel.setText("Selected file: " + selectedFile.getAbsolutePath());
-                    Musica importedSong = new Musica(selectedFile.getName(), null, selectedFile.getParent(), 0, 0, null, null);
-                    auxSongList.addElement(importedSong.getNome());
+                    Musica importedSong = new Musica(selectedFile.getName(), null, selectedFile.getParent(), 0, 0, null, null, selectedFile.getAbsolutePath());
+                    auxSongList.addElement(importedSong);
                     songList.setModel(auxSongList);
                     songList.revalidate();
                     songList.repaint();
@@ -65,12 +72,12 @@ public class MainFrame extends JFrame{
         fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
             @Override
             public boolean accept(File f) {
-                return f.getName().toLowerCase().endsWith(".mp3") || f.isDirectory();
+                return f.getName().toLowerCase().endsWith(".wav") || f.isDirectory();
             }
 
             @Override
             public String getDescription() {
-                return "MP3 files (*.mp3)";
+                return "WAV files (*.wav)";
             }
         });
 
@@ -108,64 +115,197 @@ public class MainFrame extends JFrame{
         GridBagConstraints rightPanelGbc = new GridBagConstraints();
         
         JLabel songPlayingLabel = new JLabel("Selecione uma música");
-        
-        File songFile = new File("D://");
-        JButton playButton = new JButton("Play");
-        
-        JButton pauseButton = new JButton("Pause");
-
-        JButton stopButton = new JButton("Stop");
-        
+        JSlider songDurationSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);    
+    
         songList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
-                    songPlayingLabel.setText("Música selecionada: " + songList.getSelectedValue());
+                    songPlayingLabel.setText("Música selecionada: " + songList.getSelectedValue().getNome());
+                    try {
+                        File songFile = new File(songList.getSelectedValue().getPath());
+                        AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
+                        audioClip = AudioSystem.getClip();
+                        songList.getSelectedValue().setDuracao((int) audioClip.getMicrosecondLength());
+                        audioClip.open(audioStream);
+                        songDurationSlider.setMaximum((int) audioClip.getMicrosecondLength()/1000);
+                    } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e2) {
+                        e2.printStackTrace();
+                        JOptionPane.showMessageDialog(mainFrame, "Erro ao carregar arquivo de áudio");
+                        return;
+                    }
                 } else {
                     songPlayingLabel.setText("Pegando música");
                 }
             }
         });
 
-        JSplitPane aux_controlPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, playButton, pauseButton);
-        aux_controlPane.setResizeWeight(0.5);
-        aux_controlPane.setDividerSize(0);
-        aux_controlPane.setBackground(rightPanel.getBackground());
-
-        JSplitPane controlPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, aux_controlPane, stopButton);
-        controlPane.setResizeWeight(0.666);
-        controlPane.setDividerSize(0);
-        controlPane.setBackground(rightPanel.getBackground());
+        
+        
 
 
         rightPanelGbc.gridx = 0;
         rightPanelGbc.gridy = 0;
         rightPanel.add(songPlayingLabel,rightPanelGbc);
 
-        rightPanelGbc.gridx = 0;
-        rightPanelGbc.gridy = 1;
-        rightPanelGbc.insets = new Insets(10, 10, 10, 10);
-        rightPanel.add(controlPane, rightPanelGbc);
-        
-
         
         // Bottom Panel components
+        
         JPanel bottomPanel = new JPanel(new GridBagLayout());
         GridBagConstraints bottomPanelGbc = new GridBagConstraints();
         bottomPanel.setBackground(Color.GRAY);
 
+        JButton playButton = new JButton("Play");
+        JButton pauseButton = new JButton("Pause");
+        JButton stopButton = new JButton("Parar");
+        JButton nextButton = new JButton("Próxima");
+        JButton previousButton = new JButton("Anterior");
         JSlider volumeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
+        
+
+        playButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (audioClip != null && !audioClip.isRunning()) {
+                    audioClip.start();
+                    timer.start();
+                }
+            }
+        });
+        
+        
+        pauseButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (audioClip != null && audioClip.isRunning()) {
+                    audioClip.stop();
+                    timer.stop();
+                }
+            }
+        });
+
+        
+        stopButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (audioClip != null && audioClip.isOpen()) {
+                    audioClip.setFramePosition(0);
+                    audioClip.stop();
+                    songDurationSlider.setValue(0);
+                    timer.stop();
+                }
+            }
+        });
+
+        
+        nextButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (songList.getModel().getSize() >= 2){
+                    int aux = songList.getSelectedIndex();
+                    if (audioClip.isRunning()) {
+                        audioClip.stop();
+                        timer.stop();
+                    }
+                    if (aux < songList.getModel().getSize() - 1) {
+                        songList.setSelectedIndex(aux + 1);
+                    } else {
+                        songList.setSelectedIndex(0);
+                    }
+                    audioClip.start();
+                    timer.setInitialDelay(0);
+                    timer.restart();
+                }
+            }
+        });
+
+        
+        previousButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (songList.getModel().getSize() >= 2){
+                    int aux = songList.getSelectedIndex();
+                    if (audioClip.isRunning()) {
+                        audioClip.stop();
+                        timer.stop();
+                    }
+                    if (aux > 0) {
+                        songList.setSelectedIndex(aux - 1);
+                    } else {
+                        songList.setSelectedIndex(songList.getModel().getSize() - 1);
+                    }
+                    audioClip.start();
+                    timer.setInitialDelay(0);
+                    timer.restart();
+                    
+                }
+            }
+        });
+
+        JPanel controlPanel = new JPanel(new GridLayout(1,5,5,0));
+        controlPanel.setBackground(bottomPanel.getBackground());
+        controlPanel.add(previousButton);
+        controlPanel.add(playButton);
+        controlPanel.add(pauseButton);
+        controlPanel.add(stopButton);
+        controlPanel.add(nextButton);
+
+        
         volumeSlider.setMajorTickSpacing(10);
         volumeSlider.setBackground(bottomPanel.getBackground());
+        volumeSlider.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                float volume = volumeSlider.getValue()/100f;
+                if (audioClip != null) {
+                    FloatControl gainControl = (FloatControl) audioClip.getControl(FloatControl.Type.MASTER_GAIN);
+                    float dB = (float) (Math.log(volume) / Math.log(10.0) * 20.0);
+                    gainControl.setValue(dB);
+                }
+            }
+        });
         
-        JSlider songDurationSlider = new JSlider();
-        songDurationSlider.setMajorTickSpacing(10);
+        
         songDurationSlider.setMinorTickSpacing(1);
         songDurationSlider.setBackground(bottomPanel.getBackground());
+        songDurationSlider.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (!songDurationSlider.getValueIsAdjusting()) {
+                    if (!sliderisChanging) {
+                        int position = songDurationSlider.getValue();
+                        audioClip.setMicrosecondPosition(position * 1000);
+                    }
+                }
+            }
+        });
+
+        songDurationSlider.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                sliderisChanging = true;
+                if (audioClip.isRunning()) {
+                    timer.stop();
+                }                
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                
+                sliderisChanging = false;
+                int songPosition = songDurationSlider.getValue();
+                audioClip.setMicrosecondPosition(songPosition * 1000);
+                if (audioClip.isRunning()) {
+                    timer.start();
+                }
+            }
+        });
+
+        timer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (audioClip.isRunning() && !sliderisChanging) {
+                    songDurationSlider.setValue((int) audioClip.getMicrosecondPosition() / 1000);
+                }
+            }
+        });
         
         bottomPanelGbc.gridx = 0;
         bottomPanelGbc.gridy = 0;
-        bottomPanel.add(controlPane, bottomPanelGbc);
+        bottomPanel.add(controlPanel, bottomPanelGbc);
 
         bottomPanelGbc.gridx = 1;
         bottomPanelGbc.gridy = 0;

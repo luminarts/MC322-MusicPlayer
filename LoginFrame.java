@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import javax.swing.*;
 
@@ -61,18 +63,41 @@ public class LoginFrame extends JFrame {
         inputPanel.add(submitButton, gbc);
         submitButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String username = usernameField.getText();
-                String password = new String(passwordField.getPassword());
-                usernameField.setText("");
-                passwordField.setText("");
-                setVisible(false);
-                MainFrame.getMainFrameInstance().setVisible(true);
-                // faltou a aula de compsec aqui
-                usuarios.add(new Usuario(username, null, null, password));
-                for (int i = 0; i < usuarios.size(); i++){
-                    System.out.println(usuarios.get(i).getNome());
+                String pswrd = new String(passwordField.getPassword());
+                String usr = usernameField.getText();       
+                if (!pswrd.isEmpty() && !usr.isEmpty()) {
+                    submitAction();
+                } else {
+                    JOptionPane.showMessageDialog(loginFrameInstance,"Não deixe espaços em branco!");  
                 }
             }
+        });
+
+        passwordField.addKeyListener(new KeyListener() {
+            
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    String pswrd = new String(passwordField.getPassword());
+                    String usr = usernameField.getText();       
+                    if (!pswrd.isEmpty() && !usr.isEmpty()) {
+                        submitAction();
+                    } else {
+                        JOptionPane.showMessageDialog(loginFrameInstance,"Não deixe espaços em branco!");  
+                    }
+                }
+            }
+            
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+
         });
 
         GridBagConstraints containerGbc = new GridBagConstraints();
@@ -91,6 +116,19 @@ public class LoginFrame extends JFrame {
         this.setContentPane(mainPanel);
 
         
+    }
+
+    private void submitAction() {
+        String username = usernameField.getText();
+        String password = new String(passwordField.getPassword());
+        usernameField.setText("");
+        passwordField.setText("");
+        setVisible(false);
+        MainFrame.getMainFrameInstance().setVisible(true);
+        usuarios.add(new Usuario(username, null, null, password));
+        // for (int i = 0; i < usuarios.size(); i++){
+        //     System.out.println(usuarios.get(i).getNome());
+        // }
     }
 
     public static LoginFrame getLoginFrameloginFrameInstance() {

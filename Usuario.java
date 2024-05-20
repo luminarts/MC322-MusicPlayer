@@ -1,5 +1,6 @@
+
 public class Usuario {
-    private int id;
+    private int id = 0;
     private String nome;
     private String email;
     private String foto;
@@ -38,6 +39,7 @@ public class Usuario {
     }
 
     public Usuario(String n, String e, String f, String s) {
+        this.id = id++;
         this.nome = n;
         this.email = e;
         this.foto = f;
