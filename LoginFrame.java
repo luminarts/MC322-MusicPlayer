@@ -23,7 +23,7 @@ public class LoginFrame extends JFrame implements ActionListener{
         
         JPanel containerPanel = new JPanel(new GridBagLayout());
         containerPanel.setBackground(Color.LIGHT_GRAY);
-
+        
         
         JPanel inputPanel = new JPanel(new GridBagLayout());
         inputPanel.setBackground(Color.GRAY);
