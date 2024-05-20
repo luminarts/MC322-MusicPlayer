@@ -3,6 +3,7 @@ public class Usuario {
     private String nome;
     private String email;
     private String foto;
+    private String senha;
 
     public int getId() {
         return this.id;
@@ -36,11 +37,21 @@ public class Usuario {
         this.foto = f;
     }
 
-    public Usuario(String n, String e, String f) {
+    public Usuario(String n, String e, String f, String s) {
         this.nome = n;
         this.email = e;
         this.foto = f;
+        this.senha = s;
     }
+
+    public String getSenha() {
+        return this.senha;
+    }
+
+    public void setSenha(String p) {
+        this.senha = p;
+    }
+    
 
     // @Override
     public String ToString() {

@@ -1,15 +1,22 @@
-import javax.sound.sampled.*;
+// import javax.sound.sampled.*;
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.ArrayList;
 
 
-public class MainFrame extends JFrame { 
+
+public class MainFrame extends JFrame{ 
     JFrame mainFrame; 
     private static MainFrame mainFrameInstance = null;
     private JLabel fileLabel;
     private JFileChooser fileChooser;
+
+    
 
     MainFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -23,12 +30,9 @@ public class MainFrame extends JFrame {
         GridBagConstraints leftPanelGbc = new GridBagConstraints();
         leftPanel.setBackground(Color.LIGHT_GRAY); 
 
-        final DefaultListModel<String> auxSongList = new DefaultListModel<>();  
-        auxSongList.addElement("Song A");  
-        auxSongList.addElement("Song B");  
-        auxSongList.addElement("Song C");  
-        auxSongList.addElement("Song D");  
-        final JList<String> songList = new JList<>(auxSongList);
+        DefaultListModel<String> auxSongList = new DefaultListModel<>();  
+        
+        JList<String> songList = new JList<>(auxSongList);
         
         JButton backToLoginButton = new JButton("Voltar pra tela de login");
         backToLoginButton.addActionListener(new ActionListener() {
@@ -45,6 +49,11 @@ public class MainFrame extends JFrame {
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = fileChooser.getSelectedFile();
                     fileLabel.setText("Selected file: " + selectedFile.getAbsolutePath());
+                    Musica importedSong = new Musica(selectedFile.getName(), null, selectedFile.getParent(), 0, 0, null, null);
+                    auxSongList.addElement(importedSong.getNome());
+                    songList.setModel(auxSongList);
+                    songList.revalidate();
+                    songList.repaint();
                 }
             }
         });
@@ -90,22 +99,7 @@ public class MainFrame extends JFrame {
         leftPanel.setBounds(0, 0, 500, 720);
         songList.setBounds(0, 0, 580, 720);
 
-        // b.addActionListener(new ActionListener() {  
-        //     public void actionPerformed(ActionEvent e) {   
-        //        String data = "";  
-        //        if (list1.getSelectedIndex() != -1) {                       
-        //           data = "Programming language Selected: " + list1.getSelectedValue();   
-        //           label.setText(data);  
-        //        }  
-        //        if(list2.getSelectedIndex() != -1){  
-        //           data += ", FrameWork Selected: ";  
-        //           for(Object frame :list2.getSelectedValues()){  
-        //              data += frame + " ";  
-        //           }  
-        //        }  
-        //        label.setText(data);  
-        //     }  
-        //  }); 
+         
         
 
         // Right Panel components
@@ -113,13 +107,25 @@ public class MainFrame extends JFrame {
         rightPanel.setBackground(Color.LIGHT_GRAY); 
         GridBagConstraints rightPanelGbc = new GridBagConstraints();
         
-        JLabel songPlayingLabel = new JLabel("ALBUM + NOME + FOTO ALBUM + LABEL PLAYING NOW");
+        JLabel songPlayingLabel = new JLabel("Selecione uma música");
         
+        File songFile = new File("D://");
         JButton playButton = new JButton("Play");
         
         JButton pauseButton = new JButton("Pause");
 
         JButton stopButton = new JButton("Stop");
+        
+        songList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    songPlayingLabel.setText("Música selecionada: " + songList.getSelectedValue());
+                } else {
+                    songPlayingLabel.setText("Pegando música");
+                }
+            }
+        });
 
         JSplitPane aux_controlPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, playButton, pauseButton);
         aux_controlPane.setResizeWeight(0.5);

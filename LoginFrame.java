@@ -1,7 +1,7 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.util.ArrayList;
 import javax.swing.*;
 
 public class LoginFrame extends JFrame {
@@ -11,6 +11,8 @@ public class LoginFrame extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton submitButton = new JButton("Submit");
+
+    private ArrayList<Usuario> usuarios = new ArrayList<>();
 
     LoginFrame() {
         this.setSize(1080, 720);
@@ -65,9 +67,11 @@ public class LoginFrame extends JFrame {
                 passwordField.setText("");
                 setVisible(false);
                 MainFrame.getMainFrameInstance().setVisible(true);
-
-                System.out.println("Username: " + username);
-                System.out.println("Password: " + password);
+                // faltou a aula de compsec aqui
+                usuarios.add(new Usuario(username, null, null, password));
+                for (int i = 0; i < usuarios.size(); i++){
+                    System.out.println(usuarios.get(i).getNome());
+                }
             }
         });
 
