@@ -201,6 +201,8 @@ public class MainFrame extends JFrame{
                     int aux = songList.getSelectedIndex();
                     if (audioClip.isRunning()) {
                         audioClip.stop();
+                        audioClip.setMicrosecondPosition(0);
+                        songDurationSlider.setValue(0);
                         timer.stop();
                     }
                     if (aux < songList.getModel().getSize() - 1) {
@@ -222,6 +224,8 @@ public class MainFrame extends JFrame{
                     int aux = songList.getSelectedIndex();
                     if (audioClip.isRunning()) {
                         audioClip.stop();
+                        audioClip.setMicrosecondPosition(0);
+                        songDurationSlider.setValue(0);
                         timer.stop();
                     }
                     if (aux > 0) {
