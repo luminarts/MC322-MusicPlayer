@@ -1,10 +1,14 @@
 import javax.swing.*;
 import java.awt.*;
-
+import java.awt.event.*;
+import java.io.File;
 
 public class MainFrame extends JFrame { 
     JFrame mainFrame; 
-    
+    private static MainFrame mainFrameInstance = null;
+    private JLabel fileLabel;
+    private JFileChooser fileChooser;
+
     MainFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1080, 720);
@@ -13,7 +17,8 @@ public class MainFrame extends JFrame {
         
         // Left Panel components
 
-        JPanel leftPanel = new JPanel();
+        JPanel leftPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints leftPanelGbc = new GridBagConstraints();
         leftPanel.setBackground(Color.LIGHT_GRAY); 
 
         final DefaultListModel<String> auxSongList = new DefaultListModel<>();  
@@ -23,7 +28,58 @@ public class MainFrame extends JFrame {
         auxSongList.addElement("Song D");  
         final JList<String> songList = new JList<>(auxSongList);
         
-        leftPanel.add(songList);
+        JButton backToLoginButton = new JButton("Voltar pra tela de login");
+        backToLoginButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                setVisible(false);
+                LoginFrame.getLoginFrameloginFrameInstance().setVisible(true);
+            }
+        });
+
+        JButton importMusic = new JButton("Importar Música");
+        importMusic.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int result = fileChooser.showOpenDialog(mainFrame);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    fileLabel.setText("Selected file: " + selectedFile.getAbsolutePath());
+                }
+            }
+        });
+
+        fileLabel = new JLabel("Nenhuma música selecionada");
+
+        fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.getName().toLowerCase().endsWith(".mp3") || f.isDirectory();
+            }
+
+            @Override
+            public String getDescription() {
+                return "MP3 files (*.mp3)";
+            }
+        });
+
+        
+
+
+        leftPanelGbc.gridx = 0;
+        leftPanelGbc.gridy = 0;
+        leftPanelGbc.insets = new Insets(5,5, 5, 5);
+        leftPanel.add(backToLoginButton, leftPanelGbc);
+
+        leftPanelGbc.gridx = 0;
+        leftPanelGbc.gridy = 1;
+        leftPanel.add(importMusic, leftPanelGbc);
+
+        leftPanelGbc.gridx = 0;
+        leftPanelGbc.gridy = 2;
+        leftPanel.add(songList, leftPanelGbc);
+
+        
         songList.setBackground(Color.BLACK);
         songList.setForeground(Color.WHITE);
         
@@ -122,6 +178,13 @@ public class MainFrame extends JFrame {
 
         this.setContentPane(mainPanel);
 
+    }
+
+    public static MainFrame getMainFrameInstance() {
+        if (mainFrameInstance == null) {
+            mainFrameInstance = new MainFrame();
+        }
+        return mainFrameInstance;
     }
 }  
 

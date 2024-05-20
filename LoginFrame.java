@@ -4,7 +4,9 @@ import java.awt.event.ActionListener;
 
 import javax.swing.*;
 
-public class LoginFrame extends JFrame implements ActionListener{
+public class LoginFrame extends JFrame {
+
+    private static LoginFrame loginFrameInstance = null;
     
     private JTextField usernameField;
     private JPasswordField passwordField;
@@ -55,7 +57,19 @@ public class LoginFrame extends JFrame implements ActionListener{
         submitButton.setBackground(Color.WHITE);
         submitButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1, true));
         inputPanel.add(submitButton, gbc);
-        submitButton.addActionListener(this);
+        submitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+                usernameField.setText("");
+                passwordField.setText("");
+                setVisible(false);
+                MainFrame.getMainFrameInstance().setVisible(true);
+
+                System.out.println("Username: " + username);
+                System.out.println("Password: " + password);
+            }
+        });
 
         GridBagConstraints containerGbc = new GridBagConstraints();
         containerGbc.gridx = 0;
@@ -75,16 +89,10 @@ public class LoginFrame extends JFrame implements ActionListener{
         
     }
 
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == submitButton) {
-            String username = usernameField.getText();
-            String password = new String(passwordField.getPassword());
-            usernameField.setText("");
-            passwordField.setText("");
-            this.setVisible(false);
-
-            System.out.println("Username: " + username);
-            System.out.println("Password: " + password);
+    public static LoginFrame getLoginFrameloginFrameInstance() {
+        if (loginFrameInstance == null) {
+            loginFrameInstance = new LoginFrame();
         }
+        return loginFrameInstance;
     }
 }

@@ -6,6 +6,7 @@ public class Media {
     private int anoLanc;
     private String album;
     private String fotoCapa;
+    private String path;
 
     
     public String getNome() {
@@ -62,5 +63,13 @@ public class Media {
 
     public void setFotoCapa(String fC) {
         this.fotoCapa = fC;
+    }
+
+    public String getPath() {
+        return this.path;
+    }
+
+    public void setPath(String p) {
+        this.path = p;
     }
 }
