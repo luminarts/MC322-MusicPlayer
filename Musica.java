@@ -1,5 +1,7 @@
+import java.util.ArrayList;
+
 public class Musica extends Media {
-    
+    private ArrayList<Musica> musicasDisponiveis;
     
     public Musica(String n, String g, String artista, int d, int ano, String album, String foto) {
         this.setNome(n);
@@ -9,6 +11,14 @@ public class Musica extends Media {
         this.setAnoLanc(ano);
         this.setAlbum(album);
         this.setFotoCapa(foto);
+    }
+
+    public void addMusica(Musica musica) {
+        this.musicasDisponiveis.add(musica);
+    }
+
+    public void removeMusica(Musica musica) {
+        this.musicasDisponiveis.remove(musica);
     }
 
 

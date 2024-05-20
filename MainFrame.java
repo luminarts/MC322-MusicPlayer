@@ -1,7 +1,9 @@
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+
 
 public class MainFrame extends JFrame { 
     JFrame mainFrame; 
@@ -82,6 +84,7 @@ public class MainFrame extends JFrame {
         
         songList.setBackground(Color.BLACK);
         songList.setForeground(Color.WHITE);
+        
         
 
         leftPanel.setBounds(0, 0, 500, 720);
