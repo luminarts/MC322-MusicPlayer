@@ -19,11 +19,14 @@ public class MainFrame extends JFrame{
     private JLabel fileLabel;
     private JFileChooser fileChooser;
     private Clip audioClip;
-    private Timer timer;
     private boolean sliderisChanging = false;
-    
+    private Thread progressBarThread;
+    private JSlider songDurationSlider;
+    private int currentTime;
 
-    
+    public boolean getSliderIsChanging(){
+        return sliderisChanging;
+    }
 
     MainFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -115,20 +118,24 @@ public class MainFrame extends JFrame{
         GridBagConstraints rightPanelGbc = new GridBagConstraints();
         
         JLabel songPlayingLabel = new JLabel("Selecione uma música");
-        JSlider songDurationSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);    
-    
+        songDurationSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);    
+        JProgressBar songProgression = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
+
         songList.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
                     songPlayingLabel.setText("Música selecionada: " + songList.getSelectedValue().getNome());
                     try {
+                        
                         File songFile = new File(songList.getSelectedValue().getPath());
                         AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
                         audioClip = AudioSystem.getClip();
                         songList.getSelectedValue().setDuracao((int) audioClip.getMicrosecondLength());
                         audioClip.open(audioStream);
                         songDurationSlider.setMaximum((int) audioClip.getMicrosecondLength()/1000);
+                        songProgression.setMaximum((int) audioClip.getMicrosecondLength()/1000);
+
                     } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e2) {
                         e2.printStackTrace();
                         JOptionPane.showMessageDialog(mainFrame, "Erro ao carregar arquivo de áudio");
@@ -167,7 +174,7 @@ public class MainFrame extends JFrame{
             public void actionPerformed(ActionEvent e) {
                 if (audioClip != null && !audioClip.isRunning()) {
                     audioClip.start();
-                    timer.start();
+                    startPlaybackThread();
                 }
             }
         });
@@ -177,7 +184,7 @@ public class MainFrame extends JFrame{
             public void actionPerformed(ActionEvent e) {
                 if (audioClip != null && audioClip.isRunning()) {
                     audioClip.stop();
-                    timer.stop();
+                    stopPlaybackThread();
                 }
             }
         });
@@ -189,7 +196,8 @@ public class MainFrame extends JFrame{
                     audioClip.setFramePosition(0);
                     audioClip.stop();
                     songDurationSlider.setValue(0);
-                    timer.stop();
+                    songProgression.setValue(0);
+                    stopPlaybackThread();
                 }
             }
         });
@@ -203,7 +211,8 @@ public class MainFrame extends JFrame{
                         audioClip.stop();
                         audioClip.setMicrosecondPosition(0);
                         songDurationSlider.setValue(0);
-                        timer.stop();
+                        songProgression.setValue(0);
+                        stopPlaybackThread();
                     }
                     if (aux < songList.getModel().getSize() - 1) {
                         songList.setSelectedIndex(aux + 1);
@@ -211,8 +220,7 @@ public class MainFrame extends JFrame{
                         songList.setSelectedIndex(0);
                     }
                     audioClip.start();
-                    timer.setInitialDelay(0);
-                    timer.restart();
+                    startPlaybackThread();
                 }
             }
         });
@@ -226,7 +234,8 @@ public class MainFrame extends JFrame{
                         audioClip.stop();
                         audioClip.setMicrosecondPosition(0);
                         songDurationSlider.setValue(0);
-                        timer.stop();
+                        songProgression.setValue(0);
+                        stopPlaybackThread();
                     }
                     if (aux > 0) {
                         songList.setSelectedIndex(aux - 1);
@@ -234,9 +243,7 @@ public class MainFrame extends JFrame{
                         songList.setSelectedIndex(songList.getModel().getSize() - 1);
                     }
                     audioClip.start();
-                    timer.setInitialDelay(0);
-                    timer.restart();
-                    
+                    stopPlaybackThread();
                 }
             }
         });
@@ -263,7 +270,27 @@ public class MainFrame extends JFrame{
             }
         });
         
-        
+        songProgression.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                sliderisChanging = true;
+                if (audioClip.isRunning()) {
+                    stopPlaybackThread();
+                }
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                sliderisChanging = false;
+                int songPosition = songProgression.getValue() * 1000;
+                audioClip.setMicrosecondPosition(songPosition);
+                if (audioClip.isRunning()) {
+                    startPlaybackThread();
+                }
+
+            }
+        });
+
+
         songDurationSlider.setMinorTickSpacing(1);
         songDurationSlider.setBackground(bottomPanel.getBackground());
         songDurationSlider.addChangeListener(new ChangeListener() {
@@ -282,7 +309,7 @@ public class MainFrame extends JFrame{
             public void mousePressed(MouseEvent e) {
                 sliderisChanging = true;
                 if (audioClip.isRunning()) {
-                    timer.stop();
+                    stopPlaybackThread();
                 }                
             }
 
@@ -293,16 +320,7 @@ public class MainFrame extends JFrame{
                 int songPosition = songDurationSlider.getValue();
                 audioClip.setMicrosecondPosition(songPosition * 1000);
                 if (audioClip.isRunning()) {
-                    timer.start();
-                }
-            }
-        });
-
-        timer = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (audioClip.isRunning() && !sliderisChanging) {
-                    songDurationSlider.setValue((int) audioClip.getMicrosecondPosition() / 1000);
+                    startPlaybackThread();
                 }
             }
         });
@@ -318,6 +336,7 @@ public class MainFrame extends JFrame{
         bottomPanelGbc.gridx = 2;
         bottomPanelGbc.gridy = 0;
         bottomPanel.add(songDurationSlider, bottomPanelGbc);
+        // bottomPanel.add(songProgression, bottomPanelGbc);
 
 
         // Separate right and left Panels
@@ -330,7 +349,25 @@ public class MainFrame extends JFrame{
         mainPanel.setResizeWeight(0.85);
 
         this.setContentPane(mainPanel);
+        
 
+    }
+
+    public void startPlaybackThread() {
+        progressBarThread = new Thread(new Runnable(){
+            @Override
+            public void run() {
+                while(audioClip.isRunning() && audioClip != null) {
+                    currentTime++;
+                }
+            }
+        });
+    }
+
+    public void stopPlaybackThread() {
+        if (progressBarThread != null && progressBarThread.isAlive()) {
+            progressBarThread.interrupt();
+        }
     }
 
     public static MainFrame getMainFrameInstance() {
