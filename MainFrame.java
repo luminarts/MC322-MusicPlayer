@@ -43,7 +43,10 @@ public class MainFrame extends JFrame{
         DefaultListModel<Musica> auxSongList = new DefaultListModel<>();  
         
         JList<Musica> songList = new JList<>(auxSongList);
+        songList.setCellRenderer(new SongListCellRenderer());
         
+        
+
         JButton backToLoginButton = new JButton("Voltar pra tela de login");
         backToLoginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -127,7 +130,7 @@ public class MainFrame extends JFrame{
                 if (!e.getValueIsAdjusting()) {
                     songPlayingLabel.setText("Música selecionada: " + songList.getSelectedValue().getNome());
                     try {
-                        
+
                         File songFile = new File(songList.getSelectedValue().getPath());
                         AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
                         audioClip = AudioSystem.getClip();
@@ -370,11 +373,28 @@ public class MainFrame extends JFrame{
         }
     }
 
+    public class SongListCellRenderer extends DefaultListCellRenderer {
+        
+        public Component getListCellRendererComponent(JList<?> songList, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+
+            JLabel label = (JLabel)super.getListCellRendererComponent(songList, value, index, isSelected, cellHasFocus);
+
+            if (value instanceof Musica) {
+                Musica musica = (Musica) value;
+                label.setText(musica.getNome());
+            }
+
+        return label;
+    }
+    }
+
     public static MainFrame getMainFrameInstance() {
         if (mainFrameInstance == null) {
             mainFrameInstance = new MainFrame();
         }
         return mainFrameInstance;
     }
+
+
 }  
 

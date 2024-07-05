@@ -22,5 +22,10 @@ public class Musica extends Media {
         this.musicasDisponiveis.remove(musica);
     }
 
+    @Override
+    public String toString() {
+        return this.getNome();
+    }
+
 
 }
