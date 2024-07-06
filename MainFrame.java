@@ -264,11 +264,23 @@ public class MainFrame extends JFrame{
         volumeSlider.setBackground(bottomPanel.getBackground());
         volumeSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                float volume = volumeSlider.getValue()/100f;
+                float volume = volumeSlider.getValue()/10f - 5;
                 if (audioClip != null) {
                     FloatControl gainControl = (FloatControl) audioClip.getControl(FloatControl.Type.MASTER_GAIN);
-                    float dB = (float) (Math.log(volume) / Math.log(10.0) * 20.0);
-                    gainControl.setValue(dB);
+                    System.out.println(gainControl);
+                    System.out.println(volume);
+                    float dB  = (float) (volume * volume * volume) / 4f;
+                    float dB_actual = 0;
+                    if (dB > 6.0) {
+                        dB_actual = 6.0f;
+                    } else if (volume == -5) {
+                        dB_actual = -79f;
+                    } else {
+                        dB_actual = dB;
+                    }
+                    
+                    System.out.println(dB_actual);
+                    gainControl.setValue(dB_actual);
                 }
             }
         });
