@@ -267,8 +267,6 @@ public class MainFrame extends JFrame{
                 float volume = volumeSlider.getValue()*15f/100f -10f;
                 if (audioClip != null) {
                     FloatControl gainControl = (FloatControl) audioClip.getControl(FloatControl.Type.MASTER_GAIN);
-                    System.out.println(gainControl);
-                    System.out.println(volume);
                     float dB  = (float) (volume * volume * volume) / 21f;
                     float dB_actual = 0;
                     if (dB > 6.0) {
@@ -278,8 +276,6 @@ public class MainFrame extends JFrame{
                     } else {
                         dB_actual = dB;
                     }
-                    
-                    System.out.println(dB_actual);
                     gainControl.setValue(dB_actual);
                 }
             }
