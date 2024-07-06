@@ -4,7 +4,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
+import java.awt.Image;
+import javax.swing.ImageIcon;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -164,13 +165,19 @@ public class MainFrame extends JFrame{
         JPanel bottomPanel = new JPanel(new GridBagLayout());
         GridBagConstraints bottomPanelGbc = new GridBagConstraints();
         bottomPanel.setBackground(Color.GRAY);
-
-        JButton playButton = new JButton("Play");
-        JButton pauseButton = new JButton("Pause");
-        JButton stopButton = new JButton("Parar");
-        JButton nextButton = new JButton("Próxima");
-        JButton previousButton = new JButton("Anterior");
+        int ic_width = 30;
+        int ic_height = 30;
+        JButton playButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/play.png"), ic_width, ic_height));
+        JButton pauseButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/pause.png"), ic_width, ic_height));
+        JButton stopButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/stop.png"), ic_width, ic_height));
+        JButton nextButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/next.png"), ic_width, ic_height));
+        JButton previousButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/previous.png"), ic_width, ic_height));
         JSlider volumeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
+        
+
+
+
+
         
 
         playButton.addActionListener(new ActionListener() {
@@ -264,19 +271,11 @@ public class MainFrame extends JFrame{
         volumeSlider.setBackground(bottomPanel.getBackground());
         volumeSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                float volume = volumeSlider.getValue()*15f/100f -10f;
+                float volume = volumeSlider.getValue()/100f;
                 if (audioClip != null) {
                     FloatControl gainControl = (FloatControl) audioClip.getControl(FloatControl.Type.MASTER_GAIN);
-                    float dB  = (float) (volume * volume * volume) / 21f;
-                    float dB_actual = 0;
-                    if (dB > 6.0) {
-                        dB_actual = 6.0f;
-                    } else if (volume == -10) {
-                        dB_actual = -79f;
-                    } else {
-                        dB_actual = dB;
-                    }
-                    gainControl.setValue(dB_actual);
+                    float dB = (float) (Math.log(volume) / Math.log(10.0) * 20.0);
+                    gainControl.setValue(dB);
                 }
             }
         });
@@ -380,7 +379,11 @@ public class MainFrame extends JFrame{
             progressBarThread.interrupt();
         }
     }
-
+    public ImageIcon resizeButton(ImageIcon icon, int width, int height) {
+        Image img = icon.getImage();
+        Image resizedImg = img.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+        return new ImageIcon(resizedImg);
+    }
     public class SongListCellRenderer extends DefaultListCellRenderer {
         
         public Component getListCellRendererComponent(JList<?> songList, Object value, int index, boolean isSelected, boolean cellHasFocus) {
