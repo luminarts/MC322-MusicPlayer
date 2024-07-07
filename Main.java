@@ -1,9 +1,12 @@
+import javax.swing.*;
+
 public class Main {
     public static void main(String[] args) {
-        LoginFrame loginFrame = new LoginFrame(); 
-        MainFrame mainFrame = new MainFrame();
-
-        loginFrame.setVisible(true); 
-        mainFrame.setVisible(false);
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                LoginFrame loginFrame = new LoginFrame("Login");
+                loginFrame.setVisible(true);
+            }
+        });
     }
 }
