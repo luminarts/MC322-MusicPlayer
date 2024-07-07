@@ -24,6 +24,10 @@ public class MainFrame extends JFrame{
     private JSlider songDurationSlider;
     private int currentTime;
 
+    public int getCurrentTime() {
+        return currentTime;
+    }
+
     public boolean getSliderIsChanging(){
         return sliderisChanging;
     }
@@ -171,13 +175,24 @@ public class MainFrame extends JFrame{
         JButton nextButton = new JButton("Próxima");
         JButton previousButton = new JButton("Anterior");
         JSlider volumeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
-        
+        JLabel zeroLabel = new JLabel("00:00");
+        JLabel songLengthLabel = new JLabel("00:00");
 
         playButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (audioClip != null && !audioClip.isRunning()) {
+                    System.out.println(audioClip.getMicrosecondLength());
+                    Integer songLength_minutes = (int) audioClip.getMicrosecondLength()/60000000;
+                    float songLength_seconds = (audioClip.getMicrosecondLength()/60000000f - songLength_minutes) * 60;
+                    Integer songLengthSeconds_int = (int) songLength_seconds;
+
+                    songLengthLabel.setText(songLength_minutes.toString() + ":" + songLengthSeconds_int.toString());
+                    songLengthLabel.revalidate();
+                    songLengthLabel.repaint();
+
                     audioClip.start();
                     startPlaybackThread();
+
                 }
             }
         });
@@ -262,6 +277,7 @@ public class MainFrame extends JFrame{
         
         volumeSlider.setMajorTickSpacing(10);
         volumeSlider.setBackground(bottomPanel.getBackground());
+        volumeSlider.setPreferredSize(new Dimension(volumeSlider.getPreferredSize().width - 80, volumeSlider.getPreferredSize().height));
         volumeSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 float volume = volumeSlider.getValue()*15f/100f -10f;
@@ -280,6 +296,7 @@ public class MainFrame extends JFrame{
                 }
             }
         });
+
         
         songProgression.addMouseListener(new MouseAdapter() {
             @Override
@@ -304,6 +321,7 @@ public class MainFrame extends JFrame{
 
         songDurationSlider.setMinorTickSpacing(1);
         songDurationSlider.setBackground(bottomPanel.getBackground());
+        songDurationSlider.setPreferredSize(new Dimension(songDurationSlider.getPreferredSize().width + 100, songDurationSlider.getPreferredSize().height));
         songDurationSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 if (!songDurationSlider.getValueIsAdjusting()) {
@@ -335,6 +353,8 @@ public class MainFrame extends JFrame{
                 }
             }
         });
+
+
         
         bottomPanelGbc.gridx = 0;
         bottomPanelGbc.gridy = 0;
@@ -343,13 +363,18 @@ public class MainFrame extends JFrame{
         bottomPanelGbc.gridx = 1;
         bottomPanelGbc.gridy = 0;
         bottomPanel.add(volumeSlider, bottomPanelGbc);
-
+        
         bottomPanelGbc.gridx = 2;
+        bottomPanelGbc.gridy = 0;
+        bottomPanel.add(zeroLabel,bottomPanelGbc);
+
+        bottomPanelGbc.gridx = 3;
         bottomPanelGbc.gridy = 0;
         bottomPanel.add(songDurationSlider, bottomPanelGbc);
         // bottomPanel.add(songProgression, bottomPanelGbc);
-
-
+        bottomPanelGbc.gridx = 4;
+        bottomPanelGbc.gridy = 0;
+        bottomPanel.add(songLengthLabel,bottomPanelGbc);
         // Separate right and left Panels
         JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
         horizontalSplitPane.setResizeWeight(0.2); // Distribute space equally
@@ -365,11 +390,13 @@ public class MainFrame extends JFrame{
     }
 
     public void startPlaybackThread() {
+        JLabel currentTime = new JLabel();
         progressBarThread = new Thread(new Runnable(){
             @Override
             public void run() {
                 while(audioClip.isRunning() && audioClip != null) {
-                    currentTime++;
+                    currentTime.setText(Long.toString(audioClip.getMicrosecondPosition()));
+                    System.out.println(currentTime.getText());
                 }
             }
         });
