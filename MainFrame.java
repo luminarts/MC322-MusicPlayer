@@ -207,6 +207,10 @@ public class MainFrame extends JFrame {
         	    if (!e.getValueIsAdjusting()) {
         	        Musica selectedSong = songList.getSelectedValue();
         	        if (selectedSong != null) {
+        	        	if (audioClip != null && audioClip.isRunning()) {
+                            audioClip.stop();
+                            stopPlaybackThread();
+                        }
         	            songPlayingLabel.setText("Música selecionada: " + selectedSong.getNome());
         	            try {
         	                File songFile = new File(selectedSong.getPath());
@@ -247,7 +251,11 @@ public class MainFrame extends JFrame {
 
         playButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (audioClip != null && !audioClip.isRunning()) {
+                if (audioClip != null) {
+                	if (audioClip.isRunning()) {
+                        audioClip.stop();
+                    }
+                    audioClip.setFramePosition(0); // Reinicia a música
                     audioClip.start();
                     startPlaybackThread();
                 }
@@ -420,6 +428,10 @@ public class MainFrame extends JFrame {
         SwingUtilities.invokeLater(() -> {
             songPlayingLabel.setText("Música selecionada: " + musica.getNome());
             try {
+            	if (audioClip != null && audioClip.isRunning()) {
+                    audioClip.stop();
+                    stopPlaybackThread();
+                }
                 File songFile = new File(musica.getPath());
                 AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
                 audioClip = AudioSystem.getClip();
