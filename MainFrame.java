@@ -377,6 +377,7 @@ public class MainFrame extends JFrame{
         // Separate right and left Panels
         JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
         horizontalSplitPane.setResizeWeight(0.2); // Distribute space equally
+        horizontalSplitPane.setDividerSize(3);
 
         // add to mainPanel
         JSplitPane mainPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, horizontalSplitPane, bottomPanel);
