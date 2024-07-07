@@ -1,4 +1,8 @@
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,6 +31,22 @@ public class AlbumFrame extends JFrame {
         JLabel yearLabel = new JLabel("Ano:");
         yearField = new JTextField(20);
         JButton addMusicButton = new JButton("Adicionar Música");
+        
+        //tratamento do campo ano para exibir apenas numeros
+        ((AbstractDocument) yearField.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                String newText = fb.getDocument().getText(0, fb.getDocument().getLength()) + text;
+                if (newText.matches("\\d*")) {
+                    super.replace(fb, offset, length, text, attrs);
+                } else {
+                	JOptionPane.showMessageDialog(AlbumFrame.this,
+                            "Insira apenas numeros.",
+                            "Erro de Entrada",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -101,6 +121,8 @@ public class AlbumFrame extends JFrame {
                 dispose();
             }
         });
+        
+     
     }
 }
 

@@ -50,10 +50,10 @@ public class Album {
     // Metodo toString para mostrar o adicionado
     public String toString() {
         String aux = "";
-        aux += "Nome : " + this.nome + "\n";
-        aux += "Autor: " + this.autor + "\n";
-        aux += "Ano: " + this.ano + "\n";
-        aux += "Musicas: " + "\n";
+        aux += "Albúm : " + this.nome + "\n ";
+        aux += "Autor: " + this.autor + "\n ";
+        aux += "Ano: " + this.ano + "\n ";
+        aux += "Musicas: " + "\n ";
 
         for (int i = 0; i < musicas.size(); i++) {
             aux += musicas.get(i).getNome() + "\n";

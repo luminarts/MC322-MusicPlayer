@@ -24,8 +24,8 @@ public class MainFrame extends JFrame {
     private JList<Album> albumList;
     private DefaultListModel<Musica> albumSongListModel;
     private JList<Musica> albumSongList;
-    private JLabel songPlayingLabel; // Mover a declaração para um campo de classe
-    private JProgressBar songProgression; // Mover a declaração para um campo de classe
+    private JLabel songPlayingLabel; 
+    private JProgressBar songProgression; 
 
 
 
@@ -91,15 +91,10 @@ public class MainFrame extends JFrame {
         leftPanelGbc.gridy = 2;
         leftPanel.add(importMusic, leftPanelGbc);
         
-        JButton addAlbumButton = new JButton("Adicionar Álbum");
-        addAlbumButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                AlbumFrame albumFrame = new AlbumFrame();
-                albumFrame.setVisible(true);
-            }
-        });
+        //adicionando JToggleButton para alternar a visualizacao do album
+        JToggleButton toggleAlbumsButton = new JToggleButton("Ver/Add Álbuns");
         leftPanelGbc.gridy = 3;
-        leftPanel.add(addAlbumButton, leftPanelGbc);
+        leftPanel.add(toggleAlbumsButton, leftPanelGbc);
 
         fileLabel = new JLabel("Nenhuma música selecionada");
         leftPanelGbc.gridy = 4;
@@ -129,7 +124,7 @@ public class MainFrame extends JFrame {
         songList.setForeground(Color.WHITE);
         
         
-     // Lista de álbuns
+        //listagem de albuns cadastrados e musicas do album no painel da direita
         albumSongListModel = new DefaultListModel<>();
         albumSongList = new JList<>(albumSongListModel);
         albumSongList.setCellRenderer(new SongListCellRenderer());
@@ -138,14 +133,13 @@ public class MainFrame extends JFrame {
         albumList = new JList<>(albumListModel);
         albumList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         albumList.addListSelectionListener(new ListSelectionListener() {
-            @Override
+            
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
                     Album selectedAlbum = albumList.getSelectedValue();
                     if (selectedAlbum != null) {
-                        // Atualize a lista de músicas do álbum selecionado
+                        // Atualize a lista de músicas do álbum selecionado, coletando por musicas
                         importedListModel.clear();
-
                         albumSongListModel.clear();
                         for (int i = 0; i < selectedAlbum.getMusicas().size(); i++) {
                             albumSongListModel.addElement(selectedAlbum.getMusicas().getElementAt(i));
@@ -162,33 +156,7 @@ public class MainFrame extends JFrame {
                     }
                 }
              }
-            
-            
         });
-        
-        leftPanelGbc.gridy = 6;
-        leftPanel.add(new JScrollPane(albumList), leftPanelGbc);
-
-        // Rótulo "Músicas do Álbum:"
-        JLabel albumSongsLabel = new JLabel("Músicas do Álbum:");
-        leftPanelGbc.gridy = 7;
-        leftPanelGbc.anchor = GridBagConstraints.WEST; // Alinhar à esquerda
-        leftPanelGbc.insets = new Insets(10, 5, 5, 5); // Espaçamento
-        leftPanel.add(albumSongsLabel, leftPanelGbc);
-
-        // Lista de músicas do álbum
-        albumSongListModel = new DefaultListModel<>();
-        JList<Musica> albumSongList = new JList<>(albumSongListModel);
-        albumSongList.setCellRenderer(new SongListCellRenderer());
-
-        leftPanelGbc.gridy = 8;
-        leftPanelGbc.weighty = 1.0;
-        leftPanelGbc.fill = GridBagConstraints.BOTH;
-        leftPanel.add(new JScrollPane(albumSongList), leftPanelGbc);
-        
-        add(leftPanel);
-        setVisible(true);
-        
         
         
         
@@ -196,6 +164,62 @@ public class MainFrame extends JFrame {
         JPanel rightPanel = new JPanel(new GridBagLayout());
         rightPanel.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints rightPanelGbc = new GridBagConstraints();
+        //botao de adicionar novo album chamando album frame
+        JButton addAlbumButton = new JButton("Adicionar Novo Álbum");
+        addAlbumButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                AlbumFrame albumFrame = new AlbumFrame();
+                albumFrame.setVisible(true);
+            }
+        });
+
+        //visualizacao de funcoes de ver, ouvir e adicionar albuns na direita
+        JPanel albumPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints albumPanelGbc = new GridBagConstraints();
+        albumPanel.setBackground(Color.LIGHT_GRAY);
+        //adicao de album usando o AlbumFrame
+        albumPanelGbc.gridx = 0;
+        albumPanelGbc.gridy = 0;
+        albumPanel.add(addAlbumButton, albumPanelGbc);
+
+        albumPanelGbc.gridy = 1;
+        albumPanelGbc.weightx = 1.0;
+        albumPanelGbc.weighty = 1.0;
+        albumPanelGbc.fill = GridBagConstraints.BOTH;
+        albumPanel.add(new JScrollPane(albumList), albumPanelGbc);
+        //exibir musicas do album selecionado no Label de musicas
+        albumPanelGbc.gridy = 2;
+        albumPanelGbc.weighty = 0;
+        albumPanel.add(new JLabel("Músicas do álbum selecionado:"), albumPanelGbc);
+
+        albumPanelGbc.gridy = 3;
+        albumPanelGbc.weighty = 1.0;
+        albumPanel.add(new JScrollPane(albumSongList), albumPanelGbc);
+
+        //visualização de albuns ao clicar no botao togglebutton para o painel direito
+        toggleAlbumsButton.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    rightPanel.removeAll();
+                    rightPanelGbc.gridx = 0;
+                    rightPanelGbc.gridy = 0;
+                    rightPanel.add(albumPanel, rightPanelGbc);
+                } else {
+                    rightPanel.removeAll();
+                    rightPanelGbc.gridx = 0;
+                    rightPanelGbc.gridy = 0;
+                    rightPanel.add(songPlayingLabel, rightPanelGbc);
+                    rightPanelGbc.gridy = 1;
+                    rightPanel.add(songDurationSlider, rightPanelGbc);
+                    rightPanelGbc.gridy = 2;
+                    rightPanel.add(songProgression, rightPanelGbc);
+                }
+                rightPanel.revalidate();
+                rightPanel.repaint();
+            }
+        });
+
 
         songPlayingLabel = new JLabel("Selecione uma música");
         songDurationSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
@@ -207,11 +231,13 @@ public class MainFrame extends JFrame {
         	    if (!e.getValueIsAdjusting()) {
         	        Musica selectedSong = songList.getSelectedValue();
         	        if (selectedSong != null) {
+        	        	//parar musica atual para evitar sobrescricao de audio tocando ao msm tempo sem ter como parar
         	        	if (audioClip != null && audioClip.isRunning()) {
                             audioClip.stop();
                             stopPlaybackThread();
                         }
         	            songPlayingLabel.setText("Música selecionada: " + selectedSong.getNome());
+        	            //trtamento de excessao na execucao de musica
         	            try {
         	                File songFile = new File(selectedSong.getPath());
         	                AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
@@ -242,6 +268,7 @@ public class MainFrame extends JFrame {
         bottomPanel.setBackground(Color.GRAY);
         int ic_width = 30;
         int ic_height = 30;
+        //botoes de reprodução com os Asserts pre deifnidos da pasta do projeto
         JButton playButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/play.png"), ic_width, ic_height));
         JButton pauseButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/pause.png"), ic_width, ic_height));
         JButton stopButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/stop.png"), ic_width, ic_height));
@@ -424,10 +451,12 @@ public class MainFrame extends JFrame {
 
         this.setContentPane(mainPanel);
     }
+    //fu
     private void updateCurrentlyPlayingSong(Musica musica) {
         SwingUtilities.invokeLater(() -> {
             songPlayingLabel.setText("Música selecionada: " + musica.getNome());
             try {
+	        	//parar musica atual para evitar sobrescricao de audio tocando ao msm tempo sem ter como parar
             	if (audioClip != null && audioClip.isRunning()) {
                     audioClip.stop();
                     stopPlaybackThread();
@@ -445,7 +474,7 @@ public class MainFrame extends JFrame {
             }
         });
     }
-
+    //finalizar musica atual tocando e iniciar outra
     private void clearCurrentlyPlayingSong() {
         SwingUtilities.invokeLater(() -> {
             songPlayingLabel.setText("Nenhuma música selecionada");
@@ -488,7 +517,7 @@ public class MainFrame extends JFrame {
         }
     }
 
-    
+    //funcao para adicionar albuns nas playlists
     public void addAlbumToList(Album album) {
         albumListModel.addElement(album);
     }
