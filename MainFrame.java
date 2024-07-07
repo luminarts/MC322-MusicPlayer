@@ -20,6 +20,14 @@ public class MainFrame extends JFrame {
     private JSlider songDurationSlider;
     private int currentTime;
     private JLabel currentUserLabel;
+    private DefaultListModel<Album> albumListModel;
+    private JList<Album> albumList;
+    private DefaultListModel<Musica> albumSongListModel;
+    private JList<Musica> albumSongList;
+    private JLabel songPlayingLabel; // Mover a declaração para um campo de classe
+    private JProgressBar songProgression; // Mover a declaração para um campo de classe
+
+
 
     public boolean getSliderIsChanging() {
         return sliderisChanging;
@@ -45,9 +53,8 @@ public class MainFrame extends JFrame {
         GridBagConstraints leftPanelGbc = new GridBagConstraints();
         leftPanel.setBackground(Color.LIGHT_GRAY);
 
-        DefaultListModel<Musica> auxSongList = new DefaultListModel<>();
-
-        JList<Musica> songList = new JList<>(auxSongList);
+        DefaultListModel<Musica> importedListModel = new DefaultListModel<>();
+        JList<Musica> songList = new JList<>(importedListModel);
         songList.setCellRenderer(new SongListCellRenderer());
 
         currentUserLabel = new JLabel("Usuário Atual: ");
@@ -74,8 +81,8 @@ public class MainFrame extends JFrame {
                     File selectedFile = fileChooser.getSelectedFile();
                     fileLabel.setText("Selected file: " + selectedFile.getAbsolutePath());
                     Musica importedSong = new Musica(selectedFile.getName(), null, selectedFile.getParent(), 0, 0, null, null, selectedFile.getAbsolutePath());
-                    auxSongList.addElement(importedSong);
-                    songList.setModel(auxSongList);
+                    importedListModel.addElement(importedSong);
+                    songList.setModel(importedListModel);
                     songList.revalidate();
                     songList.repaint();
                 }
@@ -83,9 +90,19 @@ public class MainFrame extends JFrame {
         });
         leftPanelGbc.gridy = 2;
         leftPanel.add(importMusic, leftPanelGbc);
+        
+        JButton addAlbumButton = new JButton("Adicionar Álbum");
+        addAlbumButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                AlbumFrame albumFrame = new AlbumFrame();
+                albumFrame.setVisible(true);
+            }
+        });
+        leftPanelGbc.gridy = 3;
+        leftPanel.add(addAlbumButton, leftPanelGbc);
 
         fileLabel = new JLabel("Nenhuma música selecionada");
-        leftPanelGbc.gridy = 3;
+        leftPanelGbc.gridy = 4;
         leftPanel.add(fileLabel, leftPanelGbc);
 
         fileChooser = new JFileChooser();
@@ -102,7 +119,7 @@ public class MainFrame extends JFrame {
             }
         });
 
-        leftPanelGbc.gridy = 4;
+        leftPanelGbc.gridy = 5;
         leftPanelGbc.fill = GridBagConstraints.BOTH;
         leftPanelGbc.weighty = 1.0;
         JScrollPane scrollPane = new JScrollPane(songList);
@@ -110,45 +127,112 @@ public class MainFrame extends JFrame {
 
         songList.setBackground(Color.GRAY);
         songList.setForeground(Color.WHITE);
+        
+        
+     // Lista de álbuns
+        albumSongListModel = new DefaultListModel<>();
+        albumSongList = new JList<>(albumSongListModel);
+        albumSongList.setCellRenderer(new SongListCellRenderer());
+        albumSongList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        albumListModel = new DefaultListModel<>();
+        albumList = new JList<>(albumListModel);
+        albumList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        albumList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    Album selectedAlbum = albumList.getSelectedValue();
+                    if (selectedAlbum != null) {
+                        // Atualize a lista de músicas do álbum selecionado
+                        importedListModel.clear();
 
-        // Right Panel components
+                        albumSongListModel.clear();
+                        for (int i = 0; i < selectedAlbum.getMusicas().size(); i++) {
+                            albumSongListModel.addElement(selectedAlbum.getMusicas().getElementAt(i));
+                        }
+                        if (!albumSongListModel.isEmpty()) {
+                            albumSongList.setSelectedIndex(0); // Seleciona a primeira música por padrão
+                            Musica selectedSong = albumSongListModel.getElementAt(0);
+                            updateCurrentlyPlayingSong(selectedSong);
+                        } else {
+                            clearCurrentlyPlayingSong();
+                        }
+                    } else {
+                        clearCurrentlyPlayingSong();
+                    }
+                }
+             }
+            
+            
+        });
+        
+        leftPanelGbc.gridy = 6;
+        leftPanel.add(new JScrollPane(albumList), leftPanelGbc);
+
+        // Rótulo "Músicas do Álbum:"
+        JLabel albumSongsLabel = new JLabel("Músicas do Álbum:");
+        leftPanelGbc.gridy = 7;
+        leftPanelGbc.anchor = GridBagConstraints.WEST; // Alinhar à esquerda
+        leftPanelGbc.insets = new Insets(10, 5, 5, 5); // Espaçamento
+        leftPanel.add(albumSongsLabel, leftPanelGbc);
+
+        // Lista de músicas do álbum
+        albumSongListModel = new DefaultListModel<>();
+        JList<Musica> albumSongList = new JList<>(albumSongListModel);
+        albumSongList.setCellRenderer(new SongListCellRenderer());
+
+        leftPanelGbc.gridy = 8;
+        leftPanelGbc.weighty = 1.0;
+        leftPanelGbc.fill = GridBagConstraints.BOTH;
+        leftPanel.add(new JScrollPane(albumSongList), leftPanelGbc);
+        
+        add(leftPanel);
+        setVisible(true);
+        
+        
+        
+        
+        // Componentes do painel da direita
         JPanel rightPanel = new JPanel(new GridBagLayout());
         rightPanel.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints rightPanelGbc = new GridBagConstraints();
 
-        JLabel songPlayingLabel = new JLabel("Selecione uma música");
+        songPlayingLabel = new JLabel("Selecione uma música");
         songDurationSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
-        JProgressBar songProgression = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
+        songProgression = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
 
         songList.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {
-                    songPlayingLabel.setText("Música selecionada: " + songList.getSelectedValue().getNome());
-                    try {
-                        File songFile = new File(songList.getSelectedValue().getPath());
-                        AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
-                        audioClip = AudioSystem.getClip();
-                        songList.getSelectedValue().setDuracao((int) audioClip.getMicrosecondLength());
-                        audioClip.open(audioStream);
-                        songDurationSlider.setMaximum((int) audioClip.getMicrosecondLength() / 1000);
-                        songProgression.setMaximum((int) audioClip.getMicrosecondLength() / 1000);
-                    } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e2) {
-                        e2.printStackTrace();
-                        JOptionPane.showMessageDialog(mainFrame, "Erro ao carregar arquivo de áudio");
-                        return;
-                    }
-                } else {
-                    songPlayingLabel.setText("Pegando música");
-                }
-            }
+        	@Override
+        	public void valueChanged(ListSelectionEvent e) {
+        	    if (!e.getValueIsAdjusting()) {
+        	        Musica selectedSong = songList.getSelectedValue();
+        	        if (selectedSong != null) {
+        	            songPlayingLabel.setText("Música selecionada: " + selectedSong.getNome());
+        	            try {
+        	                File songFile = new File(selectedSong.getPath());
+        	                AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
+        	                audioClip = AudioSystem.getClip();
+        	                selectedSong.setDuracao((int) audioClip.getMicrosecondLength());
+        	                audioClip.open(audioStream);
+        	                songDurationSlider.setMaximum((int) audioClip.getMicrosecondLength() / 1000);
+        	                songProgression.setMaximum((int) audioClip.getMicrosecondLength() / 1000);
+        	            } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e2) {
+        	                e2.printStackTrace();
+        	                JOptionPane.showMessageDialog(mainFrame, "Erro ao carregar arquivo de áudio");
+        	            }
+        	        } else {
+        	            songPlayingLabel.setText("Nenhuma música selecionada");
+        	        }
+        	    }
+        	}
+
         });
 
         rightPanelGbc.gridx = 0;
         rightPanelGbc.gridy = 0;
         rightPanel.add(songPlayingLabel, rightPanelGbc);
 
-        // Bottom Panel components
+        // Componentes do painel inferior
         JPanel bottomPanel = new JPanel(new GridBagLayout());
         GridBagConstraints bottomPanelGbc = new GridBagConstraints();
         bottomPanel.setBackground(Color.GRAY);
@@ -321,16 +405,41 @@ public class MainFrame extends JFrame {
         bottomPanelGbc.gridy = 0;
         bottomPanel.add(songDurationSlider, bottomPanelGbc);
 
-        // Separate right and left Panels
+        // Separar painéis direito e esquerdo
         JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
-        horizontalSplitPane.setResizeWeight(0.2); // Distribute space equally
+        horizontalSplitPane.setResizeWeight(0.2); // Distribuir espaço igualmente
 
-        // add to mainPanel
+        // Adicionar ao painel principal
         JSplitPane mainPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, horizontalSplitPane, bottomPanel);
         mainPanel.setDividerSize(0);
         mainPanel.setResizeWeight(0.85);
 
         this.setContentPane(mainPanel);
+    }
+    private void updateCurrentlyPlayingSong(Musica musica) {
+        SwingUtilities.invokeLater(() -> {
+            songPlayingLabel.setText("Música selecionada: " + musica.getNome());
+            try {
+                File songFile = new File(musica.getPath());
+                AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
+                audioClip = AudioSystem.getClip();
+                musica.setDuracao((int) audioClip.getMicrosecondLength());
+                audioClip.open(audioStream);
+                songDurationSlider.setMaximum((int) audioClip.getMicrosecondLength() / 1000);
+                songProgression.setMaximum((int) audioClip.getMicrosecondLength() / 1000);
+            } catch (UnsupportedAudioFileException | IOException | LineUnavailableException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(mainFrame, "Erro ao carregar arquivo de áudio");
+            }
+        });
+    }
+
+    private void clearCurrentlyPlayingSong() {
+        SwingUtilities.invokeLater(() -> {
+            songPlayingLabel.setText("Nenhuma música selecionada");
+            songDurationSlider.setMaximum(0);
+            songProgression.setMaximum(0);
+        });
     }
 
     public void startPlaybackThread() {
@@ -367,7 +476,12 @@ public class MainFrame extends JFrame {
         }
     }
 
-    public static MainFrame getMainFrameInstance() {
+    
+    public void addAlbumToList(Album album) {
+        albumListModel.addElement(album);
+    }
+
+    public static MainFrame getInstance() {
         if (mainFrameInstance == null) {
             mainFrameInstance = new MainFrame();
         }
@@ -377,9 +491,8 @@ public class MainFrame extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                MainFrame.getMainFrameInstance().setVisible(true);
+                MainFrame.getInstance().setVisible(true);
             }
         });
     }
 }
-

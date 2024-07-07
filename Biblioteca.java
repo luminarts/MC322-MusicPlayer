@@ -5,6 +5,8 @@ public class Biblioteca {
     private ArrayList<Playlist> playlists;
     private ArrayList<Album> albuns;
     private Usuario dono;
+    private static Biblioteca instance;
+
 
     // construtor da classe
     public Biblioteca(Usuario dono) {
@@ -49,7 +51,16 @@ public class Biblioteca {
     public void removeAlbum(Album album) {
         this.albuns.remove(album);
     }
-
+    private Biblioteca() {
+        albuns = new ArrayList<>();
+    }
+    public static Biblioteca getInstance() {
+        if (instance == null) {
+            instance = new Biblioteca();
+        }
+        return instance;
+    }
+    
     // função toString para visualização dos dados cadastrados
     public String toString() {
         String aux = "";

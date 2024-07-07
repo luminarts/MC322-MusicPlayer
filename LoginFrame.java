@@ -44,9 +44,9 @@ public class LoginFrame extends JFrame {
                 Usuario usuario = Usuario.verificarLogin(username, password);
                 if (usuario != null) {
                     JOptionPane.showMessageDialog(LoginFrame.this, "Login successful!");
-                    MainFrame.getMainFrameInstance().setCurrentUser(usuario.getNome());
+                    MainFrame.getInstance().setCurrentUser(usuario.getNome());
                     setVisible(false);
-                    MainFrame.getMainFrameInstance().setVisible(true);
+                    MainFrame.getInstance().setVisible(true);
                 } else {
                     JOptionPane.showMessageDialog(LoginFrame.this, "Login failed. Invalid username or password.");
                 }
