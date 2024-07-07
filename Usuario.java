@@ -1,6 +1,4 @@
-/**
- * 
- */
+
 public class Usuario {
     private int id = 0;
     private String nome;
