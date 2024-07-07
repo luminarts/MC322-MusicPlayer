@@ -41,7 +41,9 @@ public class Playlist {
     }
 
     public void removeMusica(Musica musica) {
-        this.musicas.remove(musica);
+        while (this.musicas.contains(musica)) {
+            this.musicas.remove(musica);
+        }
     }
 
     public ArrayList<Musica> reorgMusica(ArrayList<Musica> newOrder) {

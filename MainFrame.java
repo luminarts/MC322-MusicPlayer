@@ -73,7 +73,8 @@ public class MainFrame extends JFrame{
 
         JToggleButton showPlaylists = new JToggleButton("Painel de Playlists");
         
-
+        JButton removeImportedSong = new JButton("Remover Música");
+        
         
 
         fileLabel = new JLabel("Nenhuma música selecionada");
@@ -106,10 +107,14 @@ public class MainFrame extends JFrame{
 
         leftPanelGbc.gridx = 0;
         leftPanelGbc.gridy = 2;
-        leftPanel.add(showPlaylists, leftPanelGbc);
+        leftPanel.add(removeImportedSong, leftPanelGbc);
 
         leftPanelGbc.gridx = 0;
         leftPanelGbc.gridy = 3;
+        leftPanel.add(showPlaylists, leftPanelGbc);
+
+        leftPanelGbc.gridx = 0;
+        leftPanelGbc.gridy = 4;
         leftPanel.add(songList, leftPanelGbc);
 
         
@@ -129,6 +134,8 @@ public class MainFrame extends JFrame{
         JPanel rightPanel = new JPanel(new GridBagLayout());
         rightPanel.setBackground(Color.LIGHT_GRAY); 
         GridBagConstraints rightPanelGbc = new GridBagConstraints();
+
+        
         
         JLabel songPlayingLabel = new JLabel("Selecione uma música");
         songDurationSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);    
@@ -138,21 +145,23 @@ public class MainFrame extends JFrame{
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
-                    songPlayingLabel.setText("Música selecionada: " + songList.getSelectedValue().getNome());
-                    try {
-                        if (audioClip == null || audioClip.isRunning() == false) {
-                            File songFile = new File(songList.getSelectedValue().getPath());
-                            AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
-                            audioClip = AudioSystem.getClip();
-                            songList.getSelectedValue().setDuracao((int) audioClip.getMicrosecondLength());
-                            audioClip.open(audioStream);
-                            songDurationSlider.setMaximum((int) audioClip.getMicrosecondLength()/1000);
-                            songProgression.setMaximum((int) audioClip.getMicrosecondLength()/1000);
+                    if (songList.getSelectedValue() != null) {
+                        songPlayingLabel.setText("Música selecionada: " + songList.getSelectedValue().getNome());
+                        try {
+                            if (audioClip == null || audioClip.isRunning() == false) {
+                                File songFile = new File(songList.getSelectedValue().getPath());
+                                AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
+                                audioClip = AudioSystem.getClip();
+                                songList.getSelectedValue().setDuracao((int) audioClip.getMicrosecondLength());
+                                audioClip.open(audioStream);
+                                songDurationSlider.setMaximum((int) audioClip.getMicrosecondLength()/1000);
+                                songProgression.setMaximum((int) audioClip.getMicrosecondLength()/1000);
+                            }
+                        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e2) {
+                            e2.printStackTrace();
+                            JOptionPane.showMessageDialog(mainFrame, "Erro ao carregar arquivo de áudio");
+                            return;
                         }
-                    } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e2) {
-                        e2.printStackTrace();
-                        JOptionPane.showMessageDialog(mainFrame, "Erro ao carregar arquivo de áudio");
-                        return;
                     }
                 } else {
                     songPlayingLabel.setText("Pegando música");
@@ -202,6 +211,35 @@ public class MainFrame extends JFrame{
         playlistSongs.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 songList.setSelectedValue(playlistSongs.getSelectedValue(), true);
+            }
+        });
+
+        // ActionListener do botõa Remover Música do painel esquerdo
+        removeImportedSong.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Musica selectedSong = songList.getSelectedValue();
+                String warningMessage = "Você tem certeza que quer remover a música " + (selectedSong != null? selectedSong.getNome() : "") + "? Essa ação é irreversível.";
+                if (selectedSong != null) {
+                    int userIsSure = JOptionPane.showConfirmDialog(MainFrame.this, warningMessage, "Cuidado!", JOptionPane.YES_NO_OPTION);
+                    if (userIsSure == 0) {
+                        auxSongList.removeElement(selectedSong);
+                        songList.clearSelection();
+                        songList.setModel(auxSongList);
+                        songList.revalidate();
+                        songList.repaint();
+
+                        
+                        removeSongInPlaylist(selectedSong, playlistList);
+                        playlistSongs.setModel(auxPlaylistSongs);
+
+                        playlistList.revalidate();
+                        playlistList.repaint();
+                        playlistSongs.revalidate();
+                        playlistSongs.repaint();
+                    } 
+                }
+
+                
             }
         });
         
@@ -537,6 +575,12 @@ public class MainFrame extends JFrame{
     public void stopPlaybackThread() {
         if (progressBarThread != null && progressBarThread.isAlive()) {
             progressBarThread.interrupt();
+        }
+    }
+
+    public void removeSongInPlaylist(Musica musica, JList<Playlist> playlistLists) {
+        for (int i = 0; i < playlistLists.getModel().getSize(); i++) {
+            playlistLists.getModel().getElementAt(i).removeMusica(musica);
         }
     }
 
