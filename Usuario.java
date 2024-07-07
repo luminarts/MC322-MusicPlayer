@@ -1,13 +1,42 @@
-/**
- * 
- */
+import java.util.ArrayList;
+
 public class Usuario {
+    private static ArrayList<Usuario> usuariosCadastrados = new ArrayList<>();
+
     private int id = 0;
     private String nome;
     private String email;
     private String foto;
     private String senha;
+    private String username;
 
+    
+    public Usuario(String nome, String email, String foto, String senha, String username) {
+        this.id = usuariosCadastrados.size() + 1; // Atribui um ID sequencial
+        this.nome = nome;
+        this.email = (email != null) ? email : "";
+        this.foto = (foto != null) ? foto : "";
+        this.senha = senha;
+        this.username = username;
+        usuariosCadastrados.add(this); // Adiciona o usuário à lista de cadastrados
+    }
+    public static ArrayList<Usuario> getUsuariosCadastrados() {
+        return usuariosCadastrados;
+    }
+
+    public static void setUsuariosCadastrados(ArrayList<Usuario> usuariosCadastrados) {
+        Usuario.usuariosCadastrados = usuariosCadastrados;
+    }
+    
+    public static Usuario verificarLogin(String username, String senha) {
+        for (Usuario usuario : usuariosCadastrados) {
+            if (usuario.getUsername().equals(username) && usuario.getSenha().equals(senha)) {
+                return usuario; // Retorna o usuário encontrado
+            }
+        }
+        return null; // Retorna null se não encontrar nenhum usuário válido
+    }
+    
     public int getId() {
         return this.id;
     }
@@ -40,14 +69,6 @@ public class Usuario {
         this.foto = f;
     }
 
-    public Usuario(String n, String e, String f, String s) {
-        this.id = id++;
-        this.nome = n;
-        this.email = e;
-        this.foto = f;
-        this.senha = s;
-    }
-
     public String getSenha() {
         return this.senha;
     }
@@ -56,13 +77,24 @@ public class Usuario {
         this.senha = p;
     }
     
+    public String getUsername() {
+        return this.username;
+    }
 
+    public void setUsername(String u) {
+        this.username = u;
+    }
+    
+    public static void addUsuario(Usuario usuario) {
+        usuariosCadastrados.add(usuario);
+    }
     // @Override
     public String ToString() {
         String aux = "";
         aux += "Nome : " + this.nome +"\n";
         aux += "E-mail: " + this.email +"\n";
-        aux += "Foto: " + this.foto;
+        aux += "Foto: " + this.foto+"\n";
+        aux += "Username: " + this.username;
 
         return aux;
     }

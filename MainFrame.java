@@ -4,17 +4,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-// import java.util.ArrayList;
 
-
-
-public class MainFrame extends JFrame{ 
-    JFrame mainFrame; 
+public class MainFrame extends JFrame {
+    JFrame mainFrame;
     private static MainFrame mainFrameInstance = null;
     private JLabel fileLabel;
     private JFileChooser fileChooser;
@@ -23,37 +19,52 @@ public class MainFrame extends JFrame{
     private Thread progressBarThread;
     private JSlider songDurationSlider;
     private int currentTime;
+    private JLabel currentUserLabel;
 
-    public boolean getSliderIsChanging(){
+    public boolean getSliderIsChanging() {
         return sliderisChanging;
+    }
+
+    public void setCurrentUser(String user) {
+        currentUserLabel.setText("Usuário Atual: " + user);
+    }
+
+    // Redimensionar imagem de ícone dos botões
+    public ImageIcon resizeButton(ImageIcon icon, int width, int height) {
+        Image img = icon.getImage();
+        Image resizedImg = img.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+        return new ImageIcon(resizedImg);
     }
 
     MainFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1080, 720);
 
-        
-        
         // Componentes do painel da esquerda
-
         JPanel leftPanel = new JPanel(new GridBagLayout());
         GridBagConstraints leftPanelGbc = new GridBagConstraints();
-        leftPanel.setBackground(Color.LIGHT_GRAY); 
+        leftPanel.setBackground(Color.LIGHT_GRAY);
 
-        DefaultListModel<Musica> auxSongList = new DefaultListModel<>();  
-        
+        DefaultListModel<Musica> auxSongList = new DefaultListModel<>();
+
         JList<Musica> songList = new JList<>(auxSongList);
         songList.setCellRenderer(new SongListCellRenderer());
-        
-        
+
+        currentUserLabel = new JLabel("Usuário Atual: ");
+        leftPanelGbc.gridx = 0;
+        leftPanelGbc.gridy = 0;
+        leftPanelGbc.insets = new Insets(5, 5, 5, 5);
+        leftPanel.add(currentUserLabel, leftPanelGbc);
 
         JButton backToLoginButton = new JButton("Voltar pra tela de login");
         backToLoginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 setVisible(false);
-                LoginFrame.getLoginFrameloginFrameInstance().setVisible(true);
+                LoginFrame.getLoginFrameInstance().setVisible(true);
             }
         });
+        leftPanelGbc.gridy = 1;
+        leftPanel.add(backToLoginButton, leftPanelGbc);
 
         JButton importMusic = new JButton("Importar Música");
         importMusic.addActionListener(new ActionListener() {
@@ -70,8 +81,12 @@ public class MainFrame extends JFrame{
                 }
             }
         });
+        leftPanelGbc.gridy = 2;
+        leftPanel.add(importMusic, leftPanelGbc);
 
         fileLabel = new JLabel("Nenhuma música selecionada");
+        leftPanelGbc.gridy = 3;
+        leftPanel.add(fileLabel, leftPanelGbc);
 
         fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -87,41 +102,22 @@ public class MainFrame extends JFrame{
             }
         });
 
-        
+        leftPanelGbc.gridy = 4;
+        leftPanelGbc.fill = GridBagConstraints.BOTH;
+        leftPanelGbc.weighty = 1.0;
+        JScrollPane scrollPane = new JScrollPane(songList);
+        leftPanel.add(scrollPane, leftPanelGbc);
 
-
-        leftPanelGbc.gridx = 0;
-        leftPanelGbc.gridy = 0;
-        leftPanelGbc.insets = new Insets(5,5, 5, 5);
-        leftPanel.add(backToLoginButton, leftPanelGbc);
-
-        leftPanelGbc.gridx = 0;
-        leftPanelGbc.gridy = 1;
-        leftPanel.add(importMusic, leftPanelGbc);
-
-        leftPanelGbc.gridx = 0;
-        leftPanelGbc.gridy = 2;
-        leftPanel.add(songList, leftPanelGbc);
-
-        
-        songList.setBackground(Color.BLACK);
+        songList.setBackground(Color.GRAY);
         songList.setForeground(Color.WHITE);
-        
-        
-
-        leftPanel.setBounds(0, 0, 500, 720);
-        songList.setBounds(0, 0, 580, 720);
-
-         
-        
 
         // Right Panel components
         JPanel rightPanel = new JPanel(new GridBagLayout());
-        rightPanel.setBackground(Color.LIGHT_GRAY); 
+        rightPanel.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints rightPanelGbc = new GridBagConstraints();
-        
+
         JLabel songPlayingLabel = new JLabel("Selecione uma música");
-        songDurationSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);    
+        songDurationSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
         JProgressBar songProgression = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
 
         songList.addListSelectionListener(new ListSelectionListener() {
@@ -130,15 +126,13 @@ public class MainFrame extends JFrame{
                 if (!e.getValueIsAdjusting()) {
                     songPlayingLabel.setText("Música selecionada: " + songList.getSelectedValue().getNome());
                     try {
-
                         File songFile = new File(songList.getSelectedValue().getPath());
                         AudioInputStream audioStream = AudioSystem.getAudioInputStream(songFile);
                         audioClip = AudioSystem.getClip();
                         songList.getSelectedValue().setDuracao((int) audioClip.getMicrosecondLength());
                         audioClip.open(audioStream);
-                        songDurationSlider.setMaximum((int) audioClip.getMicrosecondLength()/1000);
-                        songProgression.setMaximum((int) audioClip.getMicrosecondLength()/1000);
-
+                        songDurationSlider.setMaximum((int) audioClip.getMicrosecondLength() / 1000);
+                        songProgression.setMaximum((int) audioClip.getMicrosecondLength() / 1000);
                     } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e2) {
                         e2.printStackTrace();
                         JOptionPane.showMessageDialog(mainFrame, "Erro ao carregar arquivo de áudio");
@@ -150,28 +144,22 @@ public class MainFrame extends JFrame{
             }
         });
 
-        
-        
-
-
         rightPanelGbc.gridx = 0;
         rightPanelGbc.gridy = 0;
-        rightPanel.add(songPlayingLabel,rightPanelGbc);
+        rightPanel.add(songPlayingLabel, rightPanelGbc);
 
-        
         // Bottom Panel components
-        
         JPanel bottomPanel = new JPanel(new GridBagLayout());
         GridBagConstraints bottomPanelGbc = new GridBagConstraints();
         bottomPanel.setBackground(Color.GRAY);
-
-        JButton playButton = new JButton("Play");
-        JButton pauseButton = new JButton("Pause");
-        JButton stopButton = new JButton("Parar");
-        JButton nextButton = new JButton("Próxima");
-        JButton previousButton = new JButton("Anterior");
+        int ic_width = 30;
+        int ic_height = 30;
+        JButton playButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/play.png"), ic_width, ic_height));
+        JButton pauseButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/pause.png"), ic_width, ic_height));
+        JButton stopButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/stop.png"), ic_width, ic_height));
+        JButton nextButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/next.png"), ic_width, ic_height));
+        JButton previousButton = new JButton(resizeButton(new ImageIcon("MC322-MusicPlayer-main/Assets/previous.png"), ic_width, ic_height));
         JSlider volumeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
-        
 
         playButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -181,8 +169,7 @@ public class MainFrame extends JFrame{
                 }
             }
         });
-        
-        
+
         pauseButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (audioClip != null && audioClip.isRunning()) {
@@ -192,7 +179,6 @@ public class MainFrame extends JFrame{
             }
         });
 
-        
         stopButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (audioClip != null && audioClip.isOpen()) {
@@ -205,10 +191,9 @@ public class MainFrame extends JFrame{
             }
         });
 
-        
         nextButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (songList.getModel().getSize() >= 2){
+                if (songList.getModel().getSize() >= 2) {
                     int aux = songList.getSelectedIndex();
                     if (audioClip.isRunning()) {
                         audioClip.stop();
@@ -228,10 +213,9 @@ public class MainFrame extends JFrame{
             }
         });
 
-        
         previousButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (songList.getModel().getSize() >= 2){
+                if (songList.getModel().getSize() >= 2) {
                     int aux = songList.getSelectedIndex();
                     if (audioClip.isRunning()) {
                         audioClip.stop();
@@ -251,7 +235,7 @@ public class MainFrame extends JFrame{
             }
         });
 
-        JPanel controlPanel = new JPanel(new GridLayout(1,5,5,0));
+        JPanel controlPanel = new JPanel(new GridLayout(1, 5, 5, 0));
         controlPanel.setBackground(bottomPanel.getBackground());
         controlPanel.add(previousButton);
         controlPanel.add(playButton);
@@ -259,28 +243,19 @@ public class MainFrame extends JFrame{
         controlPanel.add(stopButton);
         controlPanel.add(nextButton);
 
-        
         volumeSlider.setMajorTickSpacing(10);
         volumeSlider.setBackground(bottomPanel.getBackground());
         volumeSlider.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                float volume = volumeSlider.getValue()*15f/100f -10f;
+                float volume = volumeSlider.getValue() / 100f;
                 if (audioClip != null) {
                     FloatControl gainControl = (FloatControl) audioClip.getControl(FloatControl.Type.MASTER_GAIN);
-                    float dB  = (float) (volume * volume * volume) / 21f;
-                    float dB_actual = 0;
-                    if (dB > 6.0) {
-                        dB_actual = 6.0f;
-                    } else if (volume == -10) {
-                        dB_actual = -79f;
-                    } else {
-                        dB_actual = dB;
-                    }
-                    gainControl.setValue(dB_actual);
+                    float dB = (float) (Math.log(volume) / Math.log(10.0) * 20.0);
+                    gainControl.setValue(dB);
                 }
             }
         });
-        
+
         songProgression.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -289,6 +264,7 @@ public class MainFrame extends JFrame{
                     stopPlaybackThread();
                 }
             }
+
             @Override
             public void mouseReleased(MouseEvent e) {
                 sliderisChanging = false;
@@ -297,10 +273,8 @@ public class MainFrame extends JFrame{
                 if (audioClip.isRunning()) {
                     startPlaybackThread();
                 }
-
             }
         });
-
 
         songDurationSlider.setMinorTickSpacing(1);
         songDurationSlider.setBackground(bottomPanel.getBackground());
@@ -321,12 +295,11 @@ public class MainFrame extends JFrame{
                 sliderisChanging = true;
                 if (audioClip.isRunning()) {
                     stopPlaybackThread();
-                }                
+                }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                
                 sliderisChanging = false;
                 int songPosition = songDurationSlider.getValue();
                 audioClip.setMicrosecondPosition(songPosition * 1000);
@@ -335,7 +308,7 @@ public class MainFrame extends JFrame{
                 }
             }
         });
-        
+
         bottomPanelGbc.gridx = 0;
         bottomPanelGbc.gridy = 0;
         bottomPanel.add(controlPanel, bottomPanelGbc);
@@ -347,8 +320,6 @@ public class MainFrame extends JFrame{
         bottomPanelGbc.gridx = 2;
         bottomPanelGbc.gridy = 0;
         bottomPanel.add(songDurationSlider, bottomPanelGbc);
-        // bottomPanel.add(songProgression, bottomPanelGbc);
-
 
         // Separate right and left Panels
         JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
@@ -360,19 +331,23 @@ public class MainFrame extends JFrame{
         mainPanel.setResizeWeight(0.85);
 
         this.setContentPane(mainPanel);
-        
-
     }
 
     public void startPlaybackThread() {
-        progressBarThread = new Thread(new Runnable(){
+        progressBarThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while(audioClip.isRunning() && audioClip != null) {
+                while (audioClip != null && audioClip.isRunning()) {
                     currentTime++;
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        break;
+                    }
                 }
             }
         });
+        progressBarThread.start();
     }
 
     public void stopPlaybackThread() {
@@ -382,18 +357,14 @@ public class MainFrame extends JFrame{
     }
 
     public class SongListCellRenderer extends DefaultListCellRenderer {
-        
         public Component getListCellRendererComponent(JList<?> songList, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-
-            JLabel label = (JLabel)super.getListCellRendererComponent(songList, value, index, isSelected, cellHasFocus);
-
+            JLabel label = (JLabel) super.getListCellRendererComponent(songList, value, index, isSelected, cellHasFocus);
             if (value instanceof Musica) {
                 Musica musica = (Musica) value;
                 label.setText(musica.getNome());
             }
-
-        return label;
-    }
+            return label;
+        }
     }
 
     public static MainFrame getMainFrameInstance() {
@@ -403,6 +374,12 @@ public class MainFrame extends JFrame{
         return mainFrameInstance;
     }
 
-
-}  
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                MainFrame.getMainFrameInstance().setVisible(true);
+            }
+        });
+    }
+}
 
