@@ -181,7 +181,6 @@ public class MainFrame extends JFrame{
         playButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (audioClip != null && !audioClip.isRunning()) {
-                    System.out.println(audioClip.getMicrosecondLength());
                     Integer songLength_minutes = (int) audioClip.getMicrosecondLength()/60000000;
                     float songLength_seconds = (audioClip.getMicrosecondLength()/60000000f - songLength_minutes) * 60;
                     Integer songLengthSeconds_int = (int) songLength_seconds;
