@@ -80,6 +80,35 @@ public class RegisterFrame extends JFrame {
                 String username = usernameField.getText();
                 String email = emailField.getText();
                 String password = new String(passwordField.getPassword());
+                try {
+                    // Verifica se os campos estão vazios
+                    if (nome.isEmpty()) {
+                        throw new VazioException("Nome");
+                    }
+                    if (username.isEmpty()) {
+                        throw new VazioException("Username");
+                    }
+                    if (email.isEmpty()) {
+                        throw new VazioException("Email");
+                    }
+                    if (password.isEmpty()) {
+                        throw new VazioException("Password");
+                    }
+
+                    // Verifica o tamanho do username
+                    if (username.length() > 25) {
+                        throw new TamanhoUserException("O nome de usuário não pode ter mais que 25 caracteres.");
+                    }
+                    if (password.length() < 5) {
+                        throw new SenhaException("A senha deve ter pelo menos 5 caracteres.");
+                    }
+
+                    // Verifica se o username contém palavras proibidas
+                    if (verificaPalavrao(username)) {
+                        throw new PalavroesUserException("O username contém uma palavra proibida.");
+                    }
+
+                
 
                 Usuario usuario = new Usuario(nome, email,"", password,username);
                 Usuario.addUsuario(usuario); // Adicionar usuário à lista
@@ -88,6 +117,10 @@ public class RegisterFrame extends JFrame {
                 LoginFrame loginFrame = LoginFrame.getLoginFrameInstance();
                 loginFrame.setVisible(true);
                 setVisible(false);
+                } catch  (VazioException | TamanhoUserException | PalavroesUserException | SenhaException ex) {
+                    JOptionPane.showMessageDialog(RegisterFrame.this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+
             }
         });
 
@@ -99,6 +132,16 @@ public class RegisterFrame extends JFrame {
                 setVisible(false);
             }
         });
+    }
+
+    private boolean verificaPalavrao(String username) throws PalavroesUserException {
+        String[] palavrao = {"porra", "buceta", "caralho", "pinto", "gozo", "gozador", "puta", "penis", "xereca"};
+        for (String palavra : palavrao) {
+            if (username.toLowerCase().contains(palavra)) {
+                throw new PalavroesUserException("O username contém uma palavra proibida.");
+            }
+        }
+        return false;
     }
     
     public static RegisterFrame getRegisterFrameInstance() {

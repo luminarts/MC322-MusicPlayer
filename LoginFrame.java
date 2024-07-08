@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -7,9 +8,7 @@ import java.util.ArrayList;
 import javax.swing.*;
 
 public class LoginFrame extends JFrame {
-
     private static LoginFrame loginFrameInstance = null;
-    
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton submitButton = new JButton("Submit");
@@ -17,8 +16,9 @@ public class LoginFrame extends JFrame {
 
     private ArrayList<Usuario> usuarios = new ArrayList<>();
 
-    LoginFrame() {
-        this.setSize(1080, 720);
+    LoginFrame(String title) {
+        super(title);
+        this.setSize(300, 200);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
         
@@ -62,6 +62,7 @@ public class LoginFrame extends JFrame {
         submitButton.setBackground(Color.WHITE);
         submitButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1, true));
         submitButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 submitAction();
             }
@@ -154,8 +155,9 @@ public class LoginFrame extends JFrame {
 
     public static LoginFrame getLoginFrameInstance() {
         if (loginFrameInstance == null) {
-            loginFrameInstance = new LoginFrame();
+            loginFrameInstance = new LoginFrame("Login");
         }
         return loginFrameInstance;
     }
 }
+

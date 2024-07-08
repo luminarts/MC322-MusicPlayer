@@ -10,7 +10,13 @@ public class Usuario {
     private String senha;
     private String username;
 
-    public Usuario(String nome, String email, String foto, String senha, String username) {
+    public Usuario(String nome, String email, String foto, String senha, String username) throws TamanhoUserException, PalavroesUserException {
+        if (username.length() > 25) {
+            throw new TamanhoUserException("O nome de usuário não pode ter mais que 25 caracteres.");
+        }
+        if (verificaPalavrao(username)) {
+            throw new PalavroesUserException("O username contém uma palavra proibida.");
+        }
         this.id = usuariosCadastrados.size() + 1; // Atribui um ID sequencial
         this.nome = nome;
         this.email = (email != null) ? email : "";
@@ -18,6 +24,14 @@ public class Usuario {
         this.senha = senha;
         this.username = username;
         usuariosCadastrados.add(this); // Adiciona o usuário à lista de cadastrados
+    }
+
+    public static ArrayList<Usuario> getUsuariosCadastrados() {
+        return usuariosCadastrados;
+    }
+
+    public static void setUsuariosCadastrados(ArrayList<Usuario> usuariosCadastrados) {
+        Usuario.usuariosCadastrados = usuariosCadastrados;
     }
 
     public int getId() {
@@ -67,13 +81,7 @@ public class Usuario {
         this.username = u;
     }
 
-    public static ArrayList<Usuario> getUsuariosCadastrados() {
-        return usuariosCadastrados;
-    }
 
-    public static void setUsuariosCadastrados(ArrayList<Usuario> usuariosCadastrados) {
-        Usuario.usuariosCadastrados = usuariosCadastrados;
-    }
 
     public static void addUsuario(Usuario usuario) {
         usuariosCadastrados.add(usuario);
@@ -81,9 +89,10 @@ public class Usuario {
     // @Override
     public String ToString() {
         String aux = "";
-        aux += "Nome : " + this.nome +"\n";
-        aux += "E-mail: " + this.email +"\n";
-        aux += "Foto: " + this.foto;
+        aux += "Nome : " + this.nome + "\n";
+        aux += "E-mail: " + this.email + "\n";
+        aux += "Foto: " + this.foto + "\n";
+        aux += "Username: " + this.username;
 
         return aux;
     }
@@ -98,5 +107,15 @@ public class Usuario {
     }
 
 
-    
+    private boolean verificaPalavrao(String username) throws PalavroesUserException {
+        String[] palavrao = {"porra", "buceta", "caralho", "pinto", "gozo", "gozador", "puta", "penis", "xereca"};
+        for (String palavra : palavrao) {
+            if (username.toLowerCase().contains(palavra)) {
+                throw new PalavroesUserException("O username contém uma palavra proibida.");
+            }
+        }
+        return false;
+    }
 }
+
+
