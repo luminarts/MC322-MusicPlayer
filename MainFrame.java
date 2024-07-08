@@ -11,6 +11,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 // import java.util.ArrayList;
+import java.util.ArrayList;
 
 
 
@@ -20,6 +21,7 @@ public class MainFrame extends JFrame{
     private JLabel fileLabel;
     private JFileChooser fileChooser;
     private Clip audioClip;
+    private DefaultListModel<Album> albumListModel;
     private boolean sliderisChanging = false;
     private Thread progressBarThread;
     private JSlider songDurationSlider;
@@ -46,17 +48,16 @@ public class MainFrame extends JFrame{
         leftPanel.setBackground(Color.LIGHT_GRAY); 
 
         DefaultListModel<Musica> auxSongList = new DefaultListModel<>();  
-        
         JList<Musica> songList = new JList<>(auxSongList);
         songList.setCellRenderer(new SongListCellRenderer());
         
-        
+        JLabel currentUserLabel = new JLabel("Bem vindo(a) " + (LoginFrame.getLoginFrameInstance().getCurrentUser() != null? LoginFrame.getLoginFrameInstance().getCurrentUser().getUsername() + "!" : "Pessoa!"));
 
         JButton backToLoginButton = new JButton("Voltar pra tela de login");
         backToLoginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 setVisible(false);
-                LoginFrame.getLoginFrameloginFrameInstance().setVisible(true);
+                LoginFrame.getLoginFrameInstance().setVisible(true);
             }
         });
 
@@ -76,6 +77,9 @@ public class MainFrame extends JFrame{
             }
         });
 
+        JToggleButton toggleAlbumsButton = new JToggleButton("Painel de Álbuns");
+        
+
         fileLabel = new JLabel("Nenhuma música selecionada");
 
         fileChooser = new JFileChooser();
@@ -93,19 +97,25 @@ public class MainFrame extends JFrame{
         });
 
         
-
-
         leftPanelGbc.gridx = 0;
         leftPanelGbc.gridy = 0;
+        leftPanel.add(currentUserLabel, leftPanelGbc);
+
+        leftPanelGbc.gridx = 0;
+        leftPanelGbc.gridy = 1;
         leftPanelGbc.insets = new Insets(5,5, 5, 5);
         leftPanel.add(backToLoginButton, leftPanelGbc);
 
         leftPanelGbc.gridx = 0;
-        leftPanelGbc.gridy = 1;
+        leftPanelGbc.gridy = 2;
         leftPanel.add(importMusic, leftPanelGbc);
 
         leftPanelGbc.gridx = 0;
-        leftPanelGbc.gridy = 2;
+        leftPanelGbc.gridy = 3;
+        leftPanel.add(toggleAlbumsButton, leftPanelGbc);
+
+        leftPanelGbc.gridx = 0;
+        leftPanelGbc.gridy = 4;
         leftPanel.add(songList, leftPanelGbc);
 
         
@@ -128,6 +138,97 @@ public class MainFrame extends JFrame{
         JLabel songPlayingLabel = new JLabel("Selecione uma música");
         songDurationSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);    
         JProgressBar songProgression = new JProgressBar(JProgressBar.HORIZONTAL, 0, 100);
+
+        JButton addAlbumButton = new JButton("Adicionar novo álbum");
+        addAlbumButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                AlbumFrame albumFrame = new AlbumFrame();
+                albumFrame.setVisible(true);
+            }
+        });
+
+        JList<Album> albumList;
+
+        DefaultListModel<Musica> albumSongListModel;
+        albumSongListModel = new DefaultListModel<>();
+
+        JList<Musica> albumSongList = new JList<>(albumSongListModel);
+        albumSongList.setCellRenderer(new SongListCellRenderer());
+        
+        albumListModel = new DefaultListModel<>();
+        albumList = new JList<>(albumListModel);
+        albumList.addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    if (albumList.getSelectedValue() != null) {
+                        albumSongListModel.clear();
+
+                        ArrayList<Musica> musicas = albumList.getSelectedValue().getMusicas();
+                        
+                        for (Musica musica : musicas) {
+                            albumSongListModel.addElement(musica);
+                            auxSongList.addElement(musica);
+                        }
+
+                        albumSongList.setModel(albumSongListModel);
+                        albumSongList.revalidate();
+                        albumSongList.repaint();
+                    
+                        songList.setModel(auxSongList);
+                        songList.revalidate();
+                        songList.repaint();
+                    }
+                }
+            }
+        });
+
+        albumSongList.addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                songList.setSelectedValue(albumSongList.getSelectedValue(), true);
+            }
+        });
+
+        JPanel albumPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints albumPanelGbc = new GridBagConstraints();
+        albumPanel.setBackground(Color.LIGHT_GRAY);
+        //adicao de album usando o AlbumFrame
+        albumPanelGbc.gridx = 0;
+        albumPanelGbc.gridy = 0;
+        albumPanel.add(addAlbumButton, albumPanelGbc);
+
+        albumPanelGbc.gridy = 1;
+        albumPanelGbc.weightx = 1.0;
+        albumPanelGbc.weighty = 1.0;
+        albumPanelGbc.fill = GridBagConstraints.BOTH;
+        albumPanel.add(albumList, albumPanelGbc);
+        //exibir musicas do album selecionado no Label de musicas
+        albumPanelGbc.gridy = 2;
+        albumPanelGbc.weighty = 0;
+        albumPanel.add(new JLabel("Músicas do álbum selecionado:"), albumPanelGbc);
+
+        albumPanelGbc.gridy = 3;
+        albumPanelGbc.weighty = 1.0;
+        albumPanel.add(albumSongList, albumPanelGbc);
+
+        toggleAlbumsButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (toggleAlbumsButton.isSelected()) {
+                    rightPanel.remove(songPlayingLabel);
+                    rightPanelGbc.gridx = 0;
+                    rightPanelGbc.gridy = 1;
+                    rightPanel.add(albumPanel, rightPanelGbc);
+                    rightPanel.revalidate();
+                    rightPanel.repaint();
+                } else {
+                    rightPanel.removeAll();
+                    rightPanelGbc.gridx = 0;
+                    rightPanelGbc.gridy = 0;
+                    rightPanel.add(songPlayingLabel, rightPanelGbc);
+                    rightPanel.revalidate();
+                    rightPanel.repaint();
+                }
+            }
+        });
 
         songList.addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -428,7 +529,11 @@ public class MainFrame extends JFrame{
             }
 
         return label;
+        }
     }
+
+    public void addAlbumToList(Album album) {
+        albumListModel.addElement(album);
     }
 
     public static MainFrame getMainFrameInstance() {

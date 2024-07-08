@@ -2,17 +2,17 @@ import java.util.ArrayList;
 
 public class Album {
     // variaveis da classe com seus metodos de acesso
-    private ArrayList<Musica> musicas;
     private String nome;
     private String autor;
     private int ano;
+    private ArrayList<Musica> musicas;
 
     // Construtor da classe
     public Album(String nome, String autor, int ano) {
-        this.musicas = new ArrayList<>();
         this.nome = nome;
         this.autor = autor;
         this.ano = ano;
+        this.musicas = new ArrayList<>();
     }
 
     // Getters e Setters para consulta e alteração dos dados
@@ -52,26 +52,20 @@ public class Album {
     public String toString() {
 
         String aux = "";
-        aux += "Nome : " + this.nome + "\n";
-        aux += "Autor: " + this.autor + "\n";
-        aux += "Ano: " + this.ano + "\n";
-        aux += "Musicas: " + "\n";
+        aux += "Álbum : " + this.nome + " ";
+        aux += "Autor: " + this.autor + " ";
+        aux += "Ano: " + this.ano + " ";
+        aux += "Musicas: " + " ";
         for (Musica musica : musicas) {
-            aux += musica.toString() + "\n";
+            aux += musica.toString();
         }
         aux += "\n";
-
         return aux;
-
     }
 
     // função que adiciona musicas a um album a partir do album cadastrado no
     // cadastro da musica na classe Musica
-    public void addMscAlbum(Musica musica) {
-        if (musica.getAlbum().equals(this.nome)) {
-            this.musicas.add(musica);
-        } else {
-            System.out.println("Musica nao pertencente ao album: " + musica.getNome());
-        }
+    public void addMusicaAlbum(Musica musica) {
+        this.musicas.add(musica);
     }
 }

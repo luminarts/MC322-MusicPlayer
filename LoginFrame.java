@@ -13,6 +13,7 @@ public class LoginFrame extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton submitButton = new JButton("Submit");
+    private Usuario currentUser;
 
     private ArrayList<Usuario> usuarios = new ArrayList<>();
 
@@ -37,17 +38,17 @@ public class LoginFrame extends JFrame {
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.insets = new Insets(20, 50, 10, 50);
 
-        JLabel usernameLabel = new JLabel("Username:");
+        usernameField = new JTextField(15);
+        JLabel usernameLabel = new JLabel("Usuário:");
         usernameLabel.setForeground(Color.WHITE);
         inputPanel.add(usernameLabel, gbc);
 
         gbc.gridy = 1;
-        usernameField = new JTextField(15);
-        usernameField.setMaximumSize(new Dimension(100, 30));
+        // usernameField.setMaximumSize(new Dimension(100, 30));
         inputPanel.add(usernameField, gbc);
 
         gbc.gridy = 2;
-        JLabel passwordLabel = new JLabel("Password:");
+        JLabel passwordLabel = new JLabel("Senha:");
         passwordLabel.setForeground(Color.WHITE);
         inputPanel.add(passwordLabel, gbc);
 
@@ -60,18 +61,29 @@ public class LoginFrame extends JFrame {
         submitButton.setBounds(new Rectangle(100, 50));
         submitButton.setBackground(Color.WHITE);
         submitButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1, true));
-        inputPanel.add(submitButton, gbc);
         submitButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String pswrd = new String(passwordField.getPassword());
-                String usr = usernameField.getText();       
-                if (!pswrd.isEmpty() && !usr.isEmpty()) {
-                    submitAction();
-                } else {
-                    JOptionPane.showMessageDialog(loginFrameInstance,"Não deixe espaços em branco!");  
-                }
+                submitAction();
             }
         });
+
+        JButton registerButton = new JButton("Registre-se");
+        registerButton.setBackground(Color.WHITE);
+        registerButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1, true));
+        registerButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                setVisible(false);
+                RegisterFrame.getRegisterFrameInstance().setVisible(true);
+            }
+        });
+
+        JPanel buttonsPanel = new JPanel(new GridLayout(1,2,10,0));
+        buttonsPanel.setBackground(inputPanel.getBackground());
+
+        buttonsPanel.add(submitButton);
+        buttonsPanel.add(registerButton);
+
+        inputPanel.add(buttonsPanel, gbc);
 
         passwordField.addKeyListener(new KeyListener() {
             
@@ -83,13 +95,7 @@ public class LoginFrame extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    String pswrd = new String(passwordField.getPassword());
-                    String usr = usernameField.getText();       
-                    if (!pswrd.isEmpty() && !usr.isEmpty()) {
-                        submitAction();
-                    } else {
-                        JOptionPane.showMessageDialog(loginFrameInstance,"Não deixe espaços em branco!");  
-                    }
+                    submitAction();
                 }
             }
             
@@ -118,20 +124,35 @@ public class LoginFrame extends JFrame {
         
     }
 
-    private void submitAction() {
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
-        usernameField.setText("");
-        passwordField.setText("");
-        setVisible(false);
-        MainFrame.getMainFrameInstance().setVisible(true);
-        usuarios.add(new Usuario(username, null, null, password));
-        // for (int i = 0; i < usuarios.size(); i++){
-        //     System.out.println(usuarios.get(i).getNome());
-        // }
+    public void submitAction() {
+        String pswrd = new String(passwordField.getPassword());
+        String usr = usernameField.getText();
+        
+        if (!pswrd.isEmpty() && !usr.isEmpty()) {
+            Usuario usuario = Usuario.verificarLogin(usr, pswrd);
+            if (usuario != null) {
+                usernameField.setText("");
+                passwordField.setText("");
+                setCurrentUser(usuario);
+                setVisible(false);
+                MainFrame.getMainFrameInstance().setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(LoginFrame.this, "Nome de usuário ou senha inválido.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(LoginFrame.this,"Não deixe espaços em branco!");  
+        }
     }
 
-    public static LoginFrame getLoginFrameloginFrameInstance() {
+    public Usuario getCurrentUser() {
+        return currentUser;
+    }
+
+    public void setCurrentUser(Usuario usuario) {
+        this.currentUser = usuario;
+    }
+
+    public static LoginFrame getLoginFrameInstance() {
         if (loginFrameInstance == null) {
             loginFrameInstance = new LoginFrame();
         }
