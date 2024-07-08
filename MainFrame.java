@@ -119,18 +119,18 @@ public class MainFrame extends JFrame{
 
         leftPanelGbc.gridx = 0;
         leftPanelGbc.gridy = 3;
-        leftPanel.add(toggleAlbumsButton, leftPanelGbc);
-
-        leftPanelGbc.gridx = 0;
-        leftPanelGbc.gridy = 4;
         leftPanel.add(removeImportedSong, leftPanelGbc);
 
         leftPanelGbc.gridx = 0;
-        leftPanelGbc.gridy = 3;
+        leftPanelGbc.gridy = 4;
+        leftPanel.add(toggleAlbumsButton, leftPanelGbc);
+
+        leftPanelGbc.gridx = 0;
+        leftPanelGbc.gridy = 5;
         leftPanel.add(showPlaylists, leftPanelGbc);
 
         leftPanelGbc.gridx = 0;
-        leftPanelGbc.gridy = 4;
+        leftPanelGbc.gridy = 6;
         leftPanel.add(songList, leftPanelGbc);
 
         
@@ -228,15 +228,17 @@ public class MainFrame extends JFrame{
         albumPanelGbc.weighty = 1.0;
         albumPanel.add(albumSongList, albumPanelGbc);
 
-        toggleAlbumsButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+        toggleAlbumsButton.addChangeListener(new ChangeListener() {
+            public void stateChanged (ChangeEvent e) {
                 if (toggleAlbumsButton.isSelected()) {
                     rightPanel.remove(songPlayingLabel);
                     rightPanelGbc.gridx = 0;
                     rightPanelGbc.gridy = 1;
                     rightPanel.add(albumPanel, rightPanelGbc);
+                    showPlaylists.setSelected(false);
                     rightPanel.revalidate();
                     rightPanel.repaint();
+
                 } else {
                     rightPanel.removeAll();
                     rightPanelGbc.gridx = 0;
@@ -427,8 +429,8 @@ public class MainFrame extends JFrame{
         
         rightPanel.add(songPlayingLabel,rightPanelGbc);
 
-        showPlaylists.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+        showPlaylists.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
                 if (showPlaylists.isSelected()) {
                     rightPanelGbc.gridy = 1;
                     rightPanel.add(createPlaylist, rightPanelGbc);
@@ -445,14 +447,13 @@ public class MainFrame extends JFrame{
                     rightPanelGbc.gridy = 7;
                     rightPanel.add(playlistSongs, rightPanelGbc);
 
+                    toggleAlbumsButton.setSelected(false);
+
                     rightPanel.revalidate();
                     rightPanel.repaint();
                 } else {
-                    rightPanel.remove(createPlaylist);
-                    rightPanel.remove(removePlaylist);
-                    rightPanel.remove(addToPlaylist);
-                    rightPanel.remove(playlistSongs);
-                    rightPanel.remove(playlistList);
+                    rightPanel.removeAll();
+                    rightPanel.add(songPlayingLabel);
 
                     rightPanel.revalidate();
                     rightPanel.repaint();
