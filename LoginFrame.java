@@ -4,6 +4,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class LoginFrame extends JFrame {
     private static LoginFrame loginFrameInstance = null;
@@ -11,12 +14,17 @@ public class LoginFrame extends JFrame {
     private JPasswordField passwordField;
     private JButton submitButton = new JButton("Submit");
     private Usuario currentUser;
+    
+    CreateFile cf= new CreateFile();
+    
+
 
     LoginFrame() {
         this.setSize(1080  , 720);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
-        
+        FileWriter fileWriter = getFileWriter() != null ? getFileWriter() : null; 
+
         JPanel mainPanel = new JPanel(new GridBagLayout());
         mainPanel.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()));
         mainPanel.setBackground(Color.LIGHT_GRAY);
@@ -59,7 +67,7 @@ public class LoginFrame extends JFrame {
         submitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                submitAction();
+                submitAction(fileWriter);
             }
         });
 
@@ -91,7 +99,7 @@ public class LoginFrame extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    submitAction();
+                    submitAction(fileWriter);
                 }
             }
             
@@ -120,7 +128,7 @@ public class LoginFrame extends JFrame {
         
     }
 
-    public void submitAction() {
+    public void submitAction(FileWriter uf) {
         String pswrd = new String(passwordField.getPassword());
         String usr = usernameField.getText();
         
@@ -129,6 +137,11 @@ public class LoginFrame extends JFrame {
             if (usuario != null) {
                 usernameField.setText("");
                 passwordField.setText("");
+                try {
+                    uf.write(usr + "\n" + pswrd);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 setCurrentUser(usuario);
                 setVisible(false);
                 MainFrame.getMainFrameInstance().setVisible(true);
@@ -146,6 +159,18 @@ public class LoginFrame extends JFrame {
 
     public void setCurrentUser(Usuario usuario) {
         this.currentUser = usuario;
+    }
+
+    public FileWriter getFileWriter() {
+        File usersFile = cf.createUsersFile();
+        FileWriter fileWriter = null;
+        try {
+            fileWriter = new FileWriter(usersFile);
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileWriter;
     }
 
     public static LoginFrame getLoginFrameInstance() {

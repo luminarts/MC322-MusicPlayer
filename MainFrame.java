@@ -185,7 +185,9 @@ public class MainFrame extends JFrame{
                         
                         for (Musica musica : musicas) {
                             albumSongListModel.addElement(musica);
-                            auxSongList.addElement(musica);
+                            if (!auxSongList.contains(musica)){
+                                auxSongList.addElement(musica);
+                            }
                         }
 
                         albumSongList.setModel(albumSongListModel);
