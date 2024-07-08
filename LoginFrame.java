@@ -4,8 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.ArrayList;
-import javax.swing.*;
 
 public class LoginFrame extends JFrame {
     private static LoginFrame loginFrameInstance = null;
@@ -14,11 +12,8 @@ public class LoginFrame extends JFrame {
     private JButton submitButton = new JButton("Submit");
     private Usuario currentUser;
 
-    private ArrayList<Usuario> usuarios = new ArrayList<>();
-
-    LoginFrame(String title) {
-        super(title);
-        this.setSize(300, 200);
+    LoginFrame() {
+        this.setSize(1080  , 720);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
         
@@ -155,7 +150,7 @@ public class LoginFrame extends JFrame {
 
     public static LoginFrame getLoginFrameInstance() {
         if (loginFrameInstance == null) {
-            loginFrameInstance = new LoginFrame("Login");
+            loginFrameInstance = new LoginFrame();
         }
         return loginFrameInstance;
     }
