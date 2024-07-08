@@ -22,6 +22,18 @@ public class Playlist {
         this.titulo = titulo;
     }
 
+    public ArrayList<Musica> getMusicas() {
+        return musicas;
+    }
+
+    public Usuario getDono() {
+        return this.dono;
+    }
+
+    public void setDono(Usuario dono) {
+        this.dono = dono;
+    }
+
     // metodos para adição e remoção de musicas em uma playlist e reorganizaqção da
     // ordem das musicas
     public void addMusica(Musica musica) {
@@ -29,7 +41,9 @@ public class Playlist {
     }
 
     public void removeMusica(Musica musica) {
-        this.musicas.remove(musica);
+        while (this.musicas.contains(musica)) {
+            this.musicas.remove(musica);
+        }
     }
 
     public ArrayList<Musica> reorgMusica(ArrayList<Musica> newOrder) {
@@ -39,13 +53,6 @@ public class Playlist {
 
     // metodo toString para visualização dos dados cadastrados
     public String toString() {
-        String aux = "";
-        aux += "Playlist: " + this.titulo + "\n";
-        aux += "Dono: " + this.dono.getNome() + "\n";
-        aux += "Playlist:\n";
-        for (Musica musica : musicas) {
-            aux += musica.toString() + "\n";
-        }
-        return aux;
+        return this.getNome();
     }
 }
